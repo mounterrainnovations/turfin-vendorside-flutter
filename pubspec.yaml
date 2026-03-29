@@ -1,0 +1,50 @@
+name: turfin_vendor_flutter
+description: TurfIn Vendor — Turf management app for field owners and operators
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.6.1
+
+  # Typography
+  google_fonts: ^8.0.0
+
+  # Icons
+  font_awesome_flutter: ^10.8.0
+
+  # HTTP
+  http: ^1.2.2
+
+  # Secure token storage
+  flutter_secure_storage: ^9.2.4
+
+  # Image handling (KYC + profile photo)
+  image_picker: ^1.1.2
+  flutter_image_compress: ^2.1.0
+
+  # QR scanner (check-in)
+  mobile_scanner: ^5.2.3
+
+  # Network connectivity detection
+  connectivity_plus: ^6.0.5
+
+  # URL launcher
+  url_launcher: ^6.3.1
+
+  # QR code rendering (BookingDetailScreen)
+  qr_flutter: ^4.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
