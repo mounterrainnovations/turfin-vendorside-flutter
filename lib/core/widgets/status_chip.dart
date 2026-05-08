@@ -1,4 +1,8 @@
 // lib/core/widgets/status_chip.dart
+//
+// {rounded.pill} = 30px per DESIGN.md.
+// "confirmed" uses tc.accentSurface + tc.accentText so it adapts between
+// light (pale neon mint + dark text) and dark (neon glow + neon text).
 
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
@@ -13,9 +17,12 @@ class StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tc = AppThemeColors.of(context);
+    final tc     = AppThemeColors.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final (bg, fg) = switch (variant) {
-      ChipVariant.confirmed => (AppColors.primaryGlow,        AppColors.primary),
+      ChipVariant.confirmed => isDark
+          ? (tc.accentSurface,        tc.accentText)          // neon glow + neon text
+          : (const Color(0xFF111111), const Color(0xFFFFFFFF)), // ink chip + white text
       ChipVariant.available => (tc.onSurface10,               tc.onSurface60),
       ChipVariant.pending   => (tc.onSurface10,               tc.onSurface60),
       ChipVariant.cancelled => (const Color(0x1AEF4444),      AppColors.error),
@@ -26,16 +33,11 @@ class StatusChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(30),
       ),
       child: Text(
         label.toUpperCase(),
-        style: TextStyle(
-          color: fg,
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1.5,
-        ),
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: fg),
       ),
     );
   }

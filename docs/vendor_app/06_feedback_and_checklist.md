@@ -72,7 +72,7 @@ From [03_auth_flow.md](./03_auth_flow.md)
 [ ] vendor_login_screen.dart created
 
 Login Screen UI:
-[ ] Logo mark + "TurfIn" + "VENDOR PORTAL" badge visible
+[ ] Logo mark + "TurfIn" + "Vendor App" badge visible
 [ ] "Welcome back." heading in displaySmall white
 [ ] Subtitle text in white60
 [ ] Email field with correct keyboard type
@@ -371,6 +371,7 @@ When you're building each screen with Claude Code, use these prompt templates fo
 consistency. Copy-paste and fill in the `[...]` parts.
 
 ### Starting a new screen:
+
 ```
 I'm building the [ScreenName] for the TurfIn Vendor app.
 Read docs/vendor_app/04_screens_step_by_step.md for the layout spec.
@@ -382,6 +383,7 @@ Mock data provider is [providerName] from lib/features/[feature]/data/.
 ```
 
 ### After completing a screen:
+
 ```
 I've finished [ScreenName]. Check the screen against the checklist in
 docs/vendor_app/06_feedback_and_checklist.md — Phase [N].
@@ -389,6 +391,7 @@ Run flutter analyze and fix any issues found.
 ```
 
 ### Wiring a real API endpoint:
+
 ```
 Replace the mock data in [ScreenName] with a real API call.
 The endpoint is [METHOD] [path] — see docs/vendor_app/05_backend_api_reference.md.
@@ -398,6 +401,7 @@ show error message if failed.
 ```
 
 ### Debugging a UI issue:
+
 ```
 [ScreenName] has this issue: [describe exactly what looks wrong].
 Read the current file at lib/features/[...].dart.
@@ -411,6 +415,7 @@ Fix it and run flutter analyze.
 ## Definition of Done
 
 A feature is **done** when:
+
 1. All checklist items for that screen are `[x]`
 2. `flutter analyze` reports zero errors
 3. Screen has been tested on both Android (physical device) and iOS (simulator or device)
@@ -419,6 +424,7 @@ A feature is **done** when:
 6. Error states are handled gracefully
 
 A phase is **done** when:
+
 1. All screens in that phase are done (per above)
 2. The Issues Log has no open items for that phase
 3. PROGRESS.md in the vendor app repo has been updated

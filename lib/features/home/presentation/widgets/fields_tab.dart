@@ -38,7 +38,7 @@ class FieldsTab extends ConsumerWidget {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.add, color: AppColors.primary, size: 26),
+                    icon: Icon(Icons.add, color: AppThemeColors.of(context).accentText, size: 26),
                     tooltip: 'Add Field',
                     onPressed: () => Navigator.push(
                       context,
@@ -150,11 +150,8 @@ class _FieldCard extends StatelessWidget {
                     builder: (_) => SlotManagementScreen(field: field),
                   ),
                 ),
-                icon: Icon(Icons.grid_view, size: 16, color: AppColors.primary),
-                label: const Text(
-                  'Manage Slots',
-                  style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
-                ),
+                icon: const Icon(Icons.grid_view, size: 16),
+                label: const Text('Manage Slots'),
                 style: TextButton.styleFrom(padding: EdgeInsets.zero),
               ),
               const Spacer(),

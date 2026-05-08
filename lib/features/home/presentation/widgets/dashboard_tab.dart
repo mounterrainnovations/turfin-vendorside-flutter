@@ -10,8 +10,6 @@ import '../../../bookings/domain/models/vendor_booking_model.dart';
 import '../../../scanner/presentation/pages/scanner_screen.dart';
 import '../../../earnings/presentation/pages/earnings_screen.dart';
 
-// ── Inline mock summary data ───────────────────────────────────────────────
-
 class _DashboardSummary {
   final String vendorName;
   final String businessName;
@@ -36,14 +34,13 @@ const _mockSummary = _DashboardSummary(
   occupancyPct: 82,
 );
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 class DashboardTab extends ConsumerWidget {
   const DashboardTab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tc       = AppThemeColors.of(context);
+    final tt       = Theme.of(context).textTheme;
     final bookings = ref.watch(mockVendorBookingsProvider);
     final upcoming = bookings
         .where((b) => b.status == VendorBookingStatus.confirmed)
@@ -62,42 +59,39 @@ class DashboardTab extends ConsumerWidget {
       backgroundColor: tc.scaffoldBg,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
-              // ── Header ──────────────────────────────────────────────
               Text(
                 '$greeting, ${_mockSummary.vendorName}',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: tc.onSurface,
-                ),
+                style: tt.titleLarge?.copyWith(color: tc.onSurface),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 3),
               Text(
                 _mockSummary.businessName,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: tc.onSurface60,
-                ),
+                style: tt.labelMedium?.copyWith(color: tc.onSurface60),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
 
-              // ── Stat cards ──────────────────────────────────────────
+              // ── Revenue hero card — ONE editorial lockup per screen ──
+              _HeroMetricCard(
+                label: "TODAY'S REVENUE",
+                value: '₹${(_mockSummary.todayRevenuePaise / 100).toStringAsFixed(0)}',
+              ),
+
+              const SizedBox(height: 10),
+
+              // ── Secondary stats — 2-column ──────────────────────────
               IntrinsicHeight(
                 child: Row(
                   children: [
-                    _StatCard(
-                      label: "TODAY'S REVENUE",
-                      value: '₹${(_mockSummary.todayRevenuePaise / 100).toStringAsFixed(0)}',
-                      neon: true,
-                    ),
-                    const SizedBox(width: 8),
-                    _StatCard(label: 'BOOKINGS', value: '${_mockSummary.todayBookings}'),
-                    const SizedBox(width: 8),
-                    _StatCard(label: 'OCCUPANCY', value: '${_mockSummary.occupancyPct}%'),
+                    _SecondaryMetricCard(label: 'BOOKINGS',  value: '${_mockSummary.todayBookings}'),
+                    const SizedBox(width: 10),
+                    _SecondaryMetricCard(label: 'OCCUPANCY', value: '${_mockSummary.occupancyPct}%'),
                   ],
                 ),
               ),
@@ -115,56 +109,44 @@ class DashboardTab extends ConsumerWidget {
                       ),
                       icon: const Icon(Icons.account_balance_wallet_outlined, size: 16),
                       label: const Text('Earnings'),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(0, 44),
-                        foregroundColor: tc.onSurface,
-                        side: BorderSide(color: tc.borderDefault),
-                      ),
+                      style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
                     ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Coming soon')),
-                        );
-                      },
+                      onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Coming soon')),
+                      ),
                       icon: const Icon(Icons.list_alt, size: 16),
                       label: const Text('All Bookings'),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(0, 44),
-                        foregroundColor: tc.onSurface,
-                        side: BorderSide(color: tc.borderDefault),
-                      ),
+                      style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 32),
 
-              // ── Upcoming check-ins ───────────────────────────────────
               const SectionLabel('NEXT CHECK-INS'),
               const SizedBox(height: 12),
               if (upcoming.isEmpty)
                 const _EmptyState(message: 'No upcoming check-ins today.')
               else
                 ...upcoming.take(3).map((b) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.only(bottom: 8),
                   child: _BookingMiniCard(booking: b, showScan: true),
                 )),
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 32),
 
-              // ── Recent bookings ──────────────────────────────────────
               const SectionLabel('RECENT BOOKINGS'),
               const SizedBox(height: 12),
               if (recent.isEmpty)
                 const _EmptyState(message: 'No bookings yet.')
               else
                 ...recent.map((b) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.only(bottom: 8),
                   child: _BookingMiniCard(booking: b, showScan: false),
                 )),
 
@@ -177,49 +159,79 @@ class DashboardTab extends ConsumerWidget {
   }
 }
 
-// ── Stat Card ─────────────────────────────────────────────────────────────
+// ── Hero Metric Card ──────────────────────────────────────────────────────────
+// Dark:  carbon card (#111111) + neon value text (#CCFF00) + neon glow
+// Light: neon card (#CCFF00)  + black value text (#000000) — neon IS the surface
 
-class _StatCard extends StatelessWidget {
+class _HeroMetricCard extends StatelessWidget {
   final String label;
   final String value;
-  final bool neon;
+  const _HeroMetricCard({required this.label, required this.value});
 
-  const _StatCard({required this.label, required this.value, this.neon = false});
+  @override
+  Widget build(BuildContext context) {
+    final tc     = AppThemeColors.of(context);
+    final tt     = Theme.of(context).textTheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: tc.heroCardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? tc.borderDefault : AppColors.primary,
+        ),
+        boxShadow: isDark
+            ? [const BoxShadow(color: AppColors.primaryGlow, blurRadius: 18, spreadRadius: 2)]
+            : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SectionLabel(label),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            // Dark: neon text on carbon. Light: black text on neon card.
+            style: tt.displayLarge?.copyWith(
+              color: isDark ? AppColors.primary : const Color(0xFF000000),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Secondary Metric Card ─────────────────────────────────────────────────────
+
+class _SecondaryMetricCard extends StatelessWidget {
+  final String label;
+  final String value;
+  const _SecondaryMetricCard({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
     final tc = AppThemeColors.of(context);
+    final tt = Theme.of(context).textTheme;
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: tc.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: tc.borderDefault),
-          boxShadow: neon
-              ? [const BoxShadow(color: AppColors.primaryGlow, blurRadius: 12)]
-              : null,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: tc.sectionLabel,
-                fontSize: 9,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.5,
-              ),
-            ),
+            SectionLabel(label),
             const SizedBox(height: 8),
             Text(
               value,
-              style: TextStyle(
-                color: neon ? AppColors.primary : tc.onSurface,
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-              ),
+              style: tt.displayMedium?.copyWith(color: tc.onSurface),
             ),
           ],
         ),
@@ -228,69 +240,56 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// ── Booking Mini Card ──────────────────────────────────────────────────────
+// ── Booking Mini Card ─────────────────────────────────────────────────────────
 
 class _BookingMiniCard extends StatelessWidget {
   final VendorBookingModel booking;
   final bool showScan;
-
   const _BookingMiniCard({required this.booking, required this.showScan});
 
   ChipVariant _chipVariant(VendorBookingStatus s) => switch (s) {
-    VendorBookingStatus.confirmed  => ChipVariant.confirmed,
-    VendorBookingStatus.completed  => ChipVariant.available,
-    VendorBookingStatus.cancelled  => ChipVariant.cancelled,
-    VendorBookingStatus.noShow     => ChipVariant.blocked,
-    VendorBookingStatus.pending    => ChipVariant.pending,
+    VendorBookingStatus.confirmed => ChipVariant.confirmed,
+    VendorBookingStatus.completed => ChipVariant.available,
+    VendorBookingStatus.cancelled => ChipVariant.cancelled,
+    VendorBookingStatus.noShow    => ChipVariant.blocked,
+    VendorBookingStatus.pending   => ChipVariant.pending,
   };
 
   @override
   Widget build(BuildContext context) {
     final tc = AppThemeColors.of(context);
+    final tt = Theme.of(context).textTheme;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: tc.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: tc.borderDefault),
       ),
       child: Row(
         children: [
-          // Left: info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  booking.customerName,
-                  style: TextStyle(
-                    color: tc.onSurface,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                Text(booking.customerName,
+                    style: tt.bodyLarge?.copyWith(color: tc.onSurface)),
                 const SizedBox(height: 3),
-                Text(
-                  booking.fieldName,
-                  style: TextStyle(color: tc.onSurface60, fontSize: 12),
-                ),
-                const SizedBox(height: 6),
+                Text(booking.fieldName,
+                    style: tt.labelMedium?.copyWith(color: tc.onSurface60)),
+                const SizedBox(height: 8),
                 Row(
                   children: [
-                    // Time chip
+                    // Time chip — uses accentSurface + accentText
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryGlow,
-                        borderRadius: BorderRadius.circular(6),
+                        color: tc.accentSurface,
+                        borderRadius: BorderRadius.circular(30),
                       ),
                       child: Text(
                         booking.startTime,
-                        style: const TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: tt.bodySmall?.copyWith(color: tc.accentText),
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -303,24 +302,19 @@ class _BookingMiniCard extends StatelessWidget {
               ],
             ),
           ),
-          // Right: scan button or amount
           if (showScan)
             IconButton(
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const ScannerScreen()),
               ),
-              icon: const Icon(Icons.qr_code_scanner, color: AppColors.primary, size: 22),
+              icon: Icon(Icons.qr_code_scanner, color: tc.accentText, size: 22),
               tooltip: 'Scan QR',
             )
           else
             Text(
               booking.formattedAmount,
-              style: const TextStyle(
-                color: AppColors.primary,
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-              ),
+              style: tt.labelMedium?.copyWith(color: tc.accentText),
             ),
         ],
       ),
@@ -328,19 +322,21 @@ class _BookingMiniCard extends StatelessWidget {
   }
 }
 
-// ── Empty State ────────────────────────────────────────────────────────────
-
 class _EmptyState extends StatelessWidget {
   final String message;
   const _EmptyState({required this.message});
 
   @override
   Widget build(BuildContext context) {
-    final tc = AppThemeColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Center(
-        child: Text(message, style: TextStyle(color: tc.onSurface50, fontSize: 13)),
+        child: Text(
+          message,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: AppThemeColors.of(context).onSurface50,
+          ),
+        ),
       ),
     );
   }

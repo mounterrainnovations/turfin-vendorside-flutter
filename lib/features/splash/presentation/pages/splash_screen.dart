@@ -3,8 +3,23 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 
-class SplashScreen extends StatelessWidget {
-  const SplashScreen({super.key});
+class SplashScreen extends StatefulWidget {
+  final VoidCallback onComplete;
+
+  const SplashScreen({super.key, required this.onComplete});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) widget.onComplete();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,26 +30,14 @@ class SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
+            Image.asset(
+              'assets/TurfinLogo.png',
               width: 80,
               height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              alignment: Alignment.center,
-              child: const Text(
-                'T',
-                style: TextStyle(
-                  color: Color(0xFF000000),
-                  fontSize: 40,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
             ),
             const SizedBox(height: 20),
             Text(
-              'TurfIn',
+              'Turfin Ops',
               style: TextStyle(
                 color: tc.onSurface,
                 fontSize: 28,
@@ -47,7 +50,7 @@ class SplashScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
               decoration: BoxDecoration(
                 color: tc.onSurface10,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(30),
                 border: Border.all(color: tc.onSurface20),
               ),
               child: Text(

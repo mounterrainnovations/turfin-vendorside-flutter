@@ -7,7 +7,7 @@ import 'core/theme/app_theme.dart';
 /// Controls the active theme mode.
 /// To add light theme support later: change this provider's value to
 /// ThemeMode.light or ThemeMode.system — everything else updates automatically.
-final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.dark);
+final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,9 +35,8 @@ class TurfinVendorApp extends ConsumerWidget {
     return MaterialApp(
       title: 'TurfIn Vendor',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
-      // darkTheme: AppTheme.darkTheme,   // uncomment when lightTheme is ready
-      // Swap to: theme: AppTheme.lightTheme, darkTheme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
       home: const AppRouter(),
     );

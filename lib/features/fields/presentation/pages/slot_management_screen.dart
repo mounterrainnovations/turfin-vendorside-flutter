@@ -100,11 +100,11 @@ final _scheduleConfigProvider = StateNotifierProvider<_ScheduleConfigNotifier, S
 
 class _ScheduleConfigNotifier extends StateNotifier<ScheduleConfig> {
   _ScheduleConfigNotifier()
-      : super(ScheduleConfig(
-          weekdayOpen: const TimeOfDay(hour: 6, minute: 0),
-          weekdayClose: const TimeOfDay(hour: 22, minute: 0),
-          weekendOpen: const TimeOfDay(hour: 6, minute: 0),
-          weekendClose: const TimeOfDay(hour: 23, minute: 0),
+      : super(const ScheduleConfig(
+          weekdayOpen: TimeOfDay(hour: 6, minute: 0),
+          weekdayClose: TimeOfDay(hour: 22, minute: 0),
+          weekendOpen: TimeOfDay(hour: 6, minute: 0),
+          weekendClose: TimeOfDay(hour: 23, minute: 0),
           slotDurationMinutes: 60,
           basePricePaise: 60000,
           peakRules: [
@@ -634,7 +634,7 @@ class _ConfigureTabState extends ConsumerState<_ConfigureTab> {
             title: 'Peak Hour Pricing',
             subtitle: 'Set higher prices for high-demand time slots',
             trailing: IconButton(
-              icon: Icon(Icons.add_circle_outline, color: AppColors.primary, size: 22),
+              icon: const Icon(Icons.add_circle_outline, color: AppColors.primary, size: 22),
               onPressed: () => _addPeakRule(context, ref, config),
             ),
             child: config.peakRules.isEmpty
@@ -927,7 +927,7 @@ class _SlotDetailSheetState extends ConsumerState<_SlotDetailSheet> {
               padding: const EdgeInsets.all(14),
               child: Row(
                 children: [
-                  Icon(Icons.event_available, color: Colors.blue, size: 20),
+                  const Icon(Icons.event_available, color: Colors.blue, size: 20),
                   const SizedBox(width: 10),
                   Text('This slot is booked by a customer',
                       style: TextStyle(color: tc.onSurface, fontSize: 13)),
@@ -1092,9 +1092,9 @@ class _PeakRuleSheetState extends ConsumerState<_PeakRuleSheet> {
                       borderSide: BorderSide(color: AppColors.primary.withAlpha(80)),
                       borderRadius: const BorderRadius.horizontal(right: Radius.circular(10)),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: AppColors.primary),
-                      borderRadius: const BorderRadius.horizontal(right: Radius.circular(10)),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.primary),
+                      borderRadius: BorderRadius.horizontal(right: Radius.circular(10)),
                     ),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                   ),
@@ -1153,7 +1153,7 @@ class _BulkActionBar extends ConsumerWidget {
       decoration: BoxDecoration(
         color: tc.surface,
         border: Border(top: BorderSide(color: AppColors.primary.withAlpha(80))),
-        boxShadow: [BoxShadow(color: AppColors.primaryGlow, blurRadius: 12)],
+        boxShadow: const [BoxShadow(color: AppColors.primaryGlow, blurRadius: 12)],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1194,8 +1194,8 @@ class _BulkActionBar extends ConsumerWidget {
                       SnackBar(content: Text('${selectedIds.length} slots blocked')),
                     );
                   },
-                  icon: Icon(Icons.block, size: 16, color: AppColors.error),
-                  label: Text('Block All', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600)),
+                  icon: const Icon(Icons.block, size: 16, color: AppColors.error),
+                  label: const Text('Block All', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600)),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: AppColors.error.withAlpha(80)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
@@ -1213,8 +1213,8 @@ class _BulkActionBar extends ConsumerWidget {
                       SnackBar(content: Text('${selectedIds.length} slots unblocked')),
                     );
                   },
-                  icon: Icon(Icons.lock_open, size: 16, color: AppColors.primary),
-                  label: Text('Unblock All', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                  icon: const Icon(Icons.lock_open, size: 16, color: AppColors.primary),
+                  label: const Text('Unblock All', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: AppColors.primary.withAlpha(80)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
@@ -1517,8 +1517,8 @@ class _EmptySlots extends StatelessWidget {
           const SizedBox(height: 20),
           OutlinedButton.icon(
             onPressed: onGenerate,
-            icon: Icon(Icons.refresh, size: 16, color: AppColors.primary),
-            label: Text('Generate Slots', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
+            icon: const Icon(Icons.refresh, size: 16, color: AppColors.primary),
+            label: const Text('Generate Slots', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: AppColors.primary.withAlpha(80)),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -1650,7 +1650,7 @@ class _TimePickerButton extends StatelessWidget {
                       style: TextStyle(
                           color: tc.onSurface, fontWeight: FontWeight.w700, fontSize: 13)),
                 ),
-                Icon(Icons.access_time, size: 14, color: AppColors.primary),
+                const Icon(Icons.access_time, size: 14, color: AppColors.primary),
               ],
             ),
           ],
@@ -1710,7 +1710,7 @@ class _PeakRuleTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.bolt, color: AppColors.primary, size: 16),
+          const Icon(Icons.bolt, color: AppColors.primary, size: 16),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -1731,7 +1731,7 @@ class _PeakRuleTile extends StatelessWidget {
             padding: const EdgeInsets.all(6),
           ),
           IconButton(
-            icon: Icon(Icons.delete_outline, size: 16, color: AppColors.error),
+            icon: const Icon(Icons.delete_outline, size: 16, color: AppColors.error),
             onPressed: onDelete,
             constraints: const BoxConstraints(),
             padding: const EdgeInsets.all(6),

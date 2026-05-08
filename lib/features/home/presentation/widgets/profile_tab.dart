@@ -34,7 +34,7 @@ class ProfileTab extends ConsumerWidget {
               const SizedBox(height: 24),
 
               // ── Account section ──────────────────────────────────
-              _SectionLabel('ACCOUNT'),
+              const _SectionLabel('ACCOUNT'),
               const SizedBox(height: 8),
               VendorCard(
                 padding: EdgeInsets.zero,
@@ -65,7 +65,7 @@ class ProfileTab extends ConsumerWidget {
               const SizedBox(height: 20),
 
               // ── Preferences section ──────────────────────────────
-              _SectionLabel('PREFERENCES'),
+              const _SectionLabel('PREFERENCES'),
               const SizedBox(height: 8),
               VendorCard(
                 padding: EdgeInsets.zero,
@@ -90,7 +90,7 @@ class ProfileTab extends ConsumerWidget {
               const SizedBox(height: 20),
 
               // ── Support section ──────────────────────────────────
-              _SectionLabel('SUPPORT'),
+              const _SectionLabel('SUPPORT'),
               const SizedBox(height: 8),
               VendorCard(
                 padding: EdgeInsets.zero,
@@ -108,7 +108,7 @@ class ProfileTab extends ConsumerWidget {
                       onTap: () {},
                     ),
                     _Divider(),
-                    _SettingRow(
+                    const _SettingRow(
                       icon: Icons.info_outline,
                       label: 'App Version',
                       value: '1.0.0',
@@ -125,8 +125,8 @@ class ProfileTab extends ConsumerWidget {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: () => _confirmSignOut(context, ref),
-                  icon: Icon(Icons.logout, size: 18, color: AppColors.error),
-                  label: Text(
+                  icon: const Icon(Icons.logout, size: 18, color: AppColors.error),
+                  label: const Text(
                     'Sign Out',
                     style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600),
                   ),
@@ -160,7 +160,7 @@ class ProfileTab extends ConsumerWidget {
               Navigator.pop(context);
               ref.read(authNotifierProvider.notifier).signOut();
             },
-            child: Text('Sign Out', style: TextStyle(color: AppColors.error)),
+            child: const Text('Sign Out', style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),

@@ -23,6 +23,7 @@ AppRouter watches authProvider → routes to VendorHomeScreen
 ```
 
 If the signed-in account does NOT have `vendor_owner` in `identity.roles`, display:
+
 > "This account is not registered as a vendor. Please use the TurfIn customer app."
 
 ---
@@ -446,7 +447,7 @@ class _VendorLoginScreenState extends ConsumerState<VendorLoginScreen> {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: const Text(
-                            'VENDOR PORTAL',
+                            'Vendor App',
                             style: TextStyle(
                               color: AppColors.white60,
                               fontSize: 9,
@@ -570,6 +571,7 @@ class _VendorLoginScreenState extends ConsumerState<VendorLoginScreen> {
 ### POST /auth/signin
 
 **Request:**
+
 ```json
 {
   "email": "vendor@example.com",
@@ -578,6 +580,7 @@ class _VendorLoginScreenState extends ConsumerState<VendorLoginScreen> {
 ```
 
 **Success Response (200):**
+
 ```json
 {
   "data": {
@@ -594,6 +597,7 @@ class _VendorLoginScreenState extends ConsumerState<VendorLoginScreen> {
 ```
 
 **Error Response (401):**
+
 ```json
 {
   "errorCode": "AUTH_INVALID_CREDENTIALS",
@@ -610,6 +614,7 @@ and shows the "not a vendor" error.
 ## Checkpoint 3 ✓
 
 At the end of this step:
+
 - `AuthNotifier` correctly signs in, stores tokens, handles errors
 - `AppRouter` watches auth state and routes automatically
 - `SplashScreen` shows while auth resolves

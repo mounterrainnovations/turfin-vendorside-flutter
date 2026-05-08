@@ -98,7 +98,7 @@ class _EditFieldScreenState extends State<EditFieldScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Basic Info ────────────────────────────────────────────
-            _SectionHeader(title: 'Basic Info'),
+            const _SectionHeader(title: 'Basic Info'),
             const SizedBox(height: 12),
             CustomTextField(hint: 'Field Name', controller: _nameCtrl),
             const SizedBox(height: 12),
@@ -139,7 +139,7 @@ class _EditFieldScreenState extends State<EditFieldScreen> {
             const SizedBox(height: 24),
 
             // ── Hours & Pricing ───────────────────────────────────────
-            _SectionHeader(title: 'Hours & Pricing'),
+            const _SectionHeader(title: 'Hours & Pricing'),
             const SizedBox(height: 12),
             CustomTextField(
               hint: 'Standard Price ₹/hr',
@@ -170,7 +170,7 @@ class _EditFieldScreenState extends State<EditFieldScreen> {
             const SizedBox(height: 24),
 
             // ── Amenities ─────────────────────────────────────────────
-            _SectionHeader(title: 'Amenities'),
+            const _SectionHeader(title: 'Amenities'),
             const SizedBox(height: 12),
             Wrap(
               spacing: 10,
@@ -193,7 +193,7 @@ class _EditFieldScreenState extends State<EditFieldScreen> {
             const SizedBox(height: 24),
 
             // ── Status ────────────────────────────────────────────────
-            _SectionHeader(title: 'Status'),
+            const _SectionHeader(title: 'Status'),
             const SizedBox(height: 12),
             _DropdownField<FieldStatus>(
               value: _status,

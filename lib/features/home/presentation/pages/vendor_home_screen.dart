@@ -16,6 +16,7 @@ class VendorHomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentTab = ref.watch(homeTabProvider);
+    final tc = AppThemeColors.of(context);
 
     final tabs = const [
       DashboardTab(),
@@ -25,7 +26,7 @@ class VendorHomeScreen extends ConsumerWidget {
     ];
 
     return Scaffold(
-      backgroundColor: AppThemeColors.of(context).scaffoldBg,
+      backgroundColor: tc.scaffoldBg,
       body: IndexedStack(
         index: currentTab,
         children: tabs,
@@ -33,7 +34,8 @@ class VendorHomeScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
         foregroundColor: const Color(0xFF000000),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: const CircleBorder(),
+        elevation: 2,
         onPressed: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const ScannerScreen()),
@@ -117,6 +119,12 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tc = AppThemeColors.of(context);
+    // Active icon/text uses accentText (neon in dark, near-black in light).
+    // The neon indicator line is always AppColors.primary — it's a background
+    // element (colored bar), not text, so it's visible in both modes.
+    final activeColor   = tc.accentText;
+    final inactiveColor = tc.onSurface50;
+
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -135,14 +143,14 @@ class _NavItem extends StatelessWidget {
           ),
           Icon(
             isActive ? activeIcon : icon,
-            color: isActive ? AppColors.primary : tc.onSurface50,
+            color: isActive ? activeColor : inactiveColor,
             size: 22,
           ),
           const SizedBox(height: 3),
           Text(
             label,
             style: TextStyle(
-              color: isActive ? AppColors.primary : tc.onSurface50,
+              color: isActive ? activeColor : inactiveColor,
               fontSize: 11,
               fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
             ),

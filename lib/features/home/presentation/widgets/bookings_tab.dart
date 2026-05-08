@@ -105,7 +105,12 @@ class _FilterPill extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tc       = AppThemeColors.of(context);
+    final isDark   = Theme.of(context).brightness == Brightness.dark;
     final isActive = status == current;
+
+    final activeBg  = isDark ? AppColors.primary        : const Color(0xFF111111);
+    final activeFg  = isDark ? const Color(0xFF000000)  : const Color(0xFFFFFFFF);
+    final activeBdr = isDark ? AppColors.primary        : const Color(0xFF111111);
 
     return GestureDetector(
       onTap: () => ref.read(_bookingFilterProvider.notifier).state = status,
@@ -113,16 +118,16 @@ class _FilterPill extends ConsumerWidget {
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.primary : tc.surface,
-          borderRadius: BorderRadius.circular(20),
+          color: isActive ? activeBg : tc.surface,
+          borderRadius: BorderRadius.circular(30),
           border: Border.all(
-            color: isActive ? AppColors.primary : tc.borderDefault,
+            color: isActive ? activeBdr : tc.borderDefault,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isActive ? const Color(0xFF000000) : tc.onSurface60,
+            color: isActive ? activeFg : tc.onSurface60,
             fontSize: 13,
             fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
           ),
@@ -201,8 +206,8 @@ class _BookingCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 booking.formattedAmount,
-                style: const TextStyle(
-                  color: AppColors.primary,
+                style: TextStyle(
+                  color: AppThemeColors.of(context).accentText,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),

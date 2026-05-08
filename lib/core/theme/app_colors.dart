@@ -7,14 +7,17 @@
 //  1. BRAND colors — always the same regardless of theme.
 //     Use directly: AppColors.primary, AppColors.error
 //
-//  2. SEMANTIC / STRUCTURAL colors — these MUST come from the ThemeExtension
-//     (AppThemeColors) so they flip correctly when light theme is added.
-//     Access via: Theme.of(context).extension<AppThemeColors>()!
-//     OR via the convenience getter: AppThemeColors.of(context)
+//  2. SEMANTIC / STRUCTURAL colors — MUST come from AppThemeColors so they
+//     flip correctly between light and dark themes.
+//     Access via: AppThemeColors.of(context)
+//
+// LIGHT vs DARK key inversion:
+//   Dark  — neon (#CCFF00) is TEXT on a black card  → high contrast ✓
+//   Light — neon (#CCFF00) is BACKGROUND of the hero card, black text on top
+//           (neon text on white = ~1.1:1 contrast — never use as text in light)
 //
 // RULE: Never hardcode AppColors.black / AppColors.white in widget files.
-//       Use AppThemeColors.of(context).surface, .onSurface, etc. instead.
-//       That is the ONLY change needed to make light theme work later.
+//       Use AppThemeColors.of(context).* instead.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
@@ -31,10 +34,8 @@ class AppColors {
   static const Color primaryGlow   = Color(0x33CCFF00); // 20% neon — glow bg
   static const Color primarySubtle = Color(0x1ACCFF00); // 10% neon — light tint
 
-  // ── Dark palette (referenced by AppTheme.darkTheme) ───────────────────────
-  static const DarkPalette dark = DarkPalette();
-
-  // ── Light palette (referenced by AppTheme.lightTheme — add when ready) ───
+  // ── Palettes ──────────────────────────────────────────────────────────────
+  static const DarkPalette  dark  = DarkPalette();
   static const LightPalette light = LightPalette();
 }
 
@@ -46,7 +47,7 @@ class DarkPalette {
 
   Color get scaffoldBg    => const Color(0xFF000000);
   Color get surface       => const Color(0xFF111111);
-  Color get navBg         => const Color(0xF2000000); // black95
+  Color get navBg         => const Color(0xF2000000); // black 95%
   Color get onSurface     => const Color(0xFFFFFFFF);
   Color get onSurface70   => const Color(0xB2FFFFFF);
   Color get onSurface60   => const Color(0x99FFFFFF);
@@ -54,23 +55,29 @@ class DarkPalette {
   Color get onSurface30   => const Color(0x4DFFFFFF);
   Color get onSurface20   => const Color(0x33FFFFFF);
   Color get onSurface10   => const Color(0x1AFFFFFF);
-  Color get borderDefault => const Color(0xFF333333);
-  Color get borderSubtle  => const Color(0xFF222222);
+  Color get borderDefault => const Color(0xFF3A3A3A);
+  Color get borderSubtle  => const Color(0xFF2A2A2A);
   Color get sectionLabel  => const Color(0xFF94A3B8); // slate-400
   Color get scrim         => const Color(0x80000000);
   Color get imgOverlay    => const Color(0xCC000000);
+
+  // ── Adaptive accent tokens ────────────────────────────────────────────────
+  // Dark: neon is used as TEXT on dark surfaces.
+  Color get accentText    => const Color(0xFFCCFF00); // neon green text
+  Color get accentSurface => const Color(0x33CCFF00); // 20% neon tint bg
+  Color get heroCardBg    => const Color(0xFF111111); // carbon — neon text sits on it
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// LIGHT PALETTE  (values are placeholders — fill in when light theme is added)
+// LIGHT PALETTE
 // ─────────────────────────────────────────────────────────────────────────────
 class LightPalette {
   const LightPalette();
 
-  Color get scaffoldBg    => const Color(0xFFF5F5F5);
-  Color get surface       => const Color(0xFFFFFFFF);
-  Color get navBg         => const Color(0xFFFFFFFF);
-  Color get onSurface     => const Color(0xFF0A0A0A);
+  Color get scaffoldBg    => const Color(0xFFF5F5F5); // soft-cloud page bg
+  Color get surface       => const Color(0xFFFFFFFF); // white cards
+  Color get navBg         => const Color(0xFFFFFFFF); // white nav bar
+  Color get onSurface     => const Color(0xFF0A0A0A); // near-black text
   Color get onSurface70   => const Color(0xB20A0A0A);
   Color get onSurface60   => const Color(0x990A0A0A);
   Color get onSurface50   => const Color(0x7F0A0A0A);
@@ -82,10 +89,16 @@ class LightPalette {
   Color get sectionLabel  => const Color(0xFF64748B); // slate-500
   Color get scrim         => const Color(0x40000000);
   Color get imgOverlay    => const Color(0x80000000);
+
+  // ── Adaptive accent tokens ────────────────────────────────────────────────
+  // Light: ink (#111111) does all assertive work — no neon in the chrome.
+  Color get accentText    => const Color(0xFF111111); // near-black — active text/icons
+  Color get accentSurface => const Color(0xFFF5F5F5); // soft-cloud — subtle chip/time bg
+  Color get heroCardBg    => const Color(0xFFFFFFFF); // white card, black display text
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ThemeExtension — the bridge between palettes and widgets
+// ThemeExtension — bridge between palettes and widgets
 // ─────────────────────────────────────────────────────────────────────────────
 class AppThemeColors extends ThemeExtension<AppThemeColors> {
   final Color scaffoldBg;
@@ -103,6 +116,10 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
   final Color sectionLabel;
   final Color scrim;
   final Color imgOverlay;
+  // Adaptive accent tokens
+  final Color accentText;    // neon in dark, near-black in light
+  final Color accentSurface; // neon tint bg in dark, pale mint in light
+  final Color heroCardBg;    // carbon in dark, neon in light
 
   const AppThemeColors({
     required this.scaffoldBg,
@@ -120,9 +137,11 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
     required this.sectionLabel,
     required this.scrim,
     required this.imgOverlay,
+    required this.accentText,
+    required this.accentSurface,
+    required this.heroCardBg,
   });
 
-  /// Convenience accessor — use this in all widget files.
   static AppThemeColors of(BuildContext context) =>
       Theme.of(context).extension<AppThemeColors>()!;
 
@@ -142,6 +161,9 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
     sectionLabel:  p.sectionLabel,
     scrim:         p.scrim,
     imgOverlay:    p.imgOverlay,
+    accentText:    p.accentText,
+    accentSurface: p.accentSurface,
+    heroCardBg:    p.heroCardBg,
   );
 
   static AppThemeColors fromLightPalette(LightPalette p) => AppThemeColors(
@@ -160,6 +182,9 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
     sectionLabel:  p.sectionLabel,
     scrim:         p.scrim,
     imgOverlay:    p.imgOverlay,
+    accentText:    p.accentText,
+    accentSurface: p.accentSurface,
+    heroCardBg:    p.heroCardBg,
   );
 
   @override
@@ -169,6 +194,7 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
     Color? onSurface50, Color? onSurface30, Color? onSurface20,
     Color? onSurface10, Color? borderDefault, Color? borderSubtle,
     Color? sectionLabel, Color? scrim, Color? imgOverlay,
+    Color? accentText, Color? accentSurface, Color? heroCardBg,
   }) => AppThemeColors(
     scaffoldBg:    scaffoldBg    ?? this.scaffoldBg,
     surface:       surface       ?? this.surface,
@@ -185,6 +211,9 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
     sectionLabel:  sectionLabel  ?? this.sectionLabel,
     scrim:         scrim         ?? this.scrim,
     imgOverlay:    imgOverlay    ?? this.imgOverlay,
+    accentText:    accentText    ?? this.accentText,
+    accentSurface: accentSurface ?? this.accentSurface,
+    heroCardBg:    heroCardBg    ?? this.heroCardBg,
   );
 
   @override
@@ -206,6 +235,9 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
       sectionLabel:  Color.lerp(sectionLabel,  other.sectionLabel,  t)!,
       scrim:         Color.lerp(scrim,         other.scrim,         t)!,
       imgOverlay:    Color.lerp(imgOverlay,    other.imgOverlay,    t)!,
+      accentText:    Color.lerp(accentText,    other.accentText,    t)!,
+      accentSurface: Color.lerp(accentSurface, other.accentSurface, t)!,
+      heroCardBg:    Color.lerp(heroCardBg,    other.heroCardBg,    t)!,
     );
   }
 }
