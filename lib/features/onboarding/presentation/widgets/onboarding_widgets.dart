@@ -110,9 +110,12 @@ Future<String?> showOnbOptionPicker(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
     builder: (ctx) {
-      return SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      return DraggableScrollableSheet(
+        initialChildSize: 0.5,
+        minChildSize: 0.35,
+        maxChildSize: 0.85,
+        expand: false,
+        builder: (_, scrollCtrl) => Column(
           children: [
             // Handle
             Container(
@@ -126,7 +129,7 @@ Future<String?> showOnbOptionPicker(
             ),
             // Title
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
@@ -138,52 +141,53 @@ Future<String?> showOnbOptionPicker(
                 ),
               ),
             ),
-            // Options
-            ...options.map(
-              (o) => InkWell(
-                onTap: () => Navigator.pop(ctx, o),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: tc.borderSubtle),
-                    ),
-                    color: o == selected
-                        ? AppColors.primarySubtle
-                        : Colors.transparent,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          o,
-                          style: TextStyle(
-                            color: o == selected
-                                ? AppColors.primary
-                                : tc.onSurface,
-                            fontSize: 15,
-                            fontWeight: o == selected
-                                ? FontWeight.w600
-                                : FontWeight.w400,
-                          ),
-                        ),
+            Divider(height: 1, color: tc.borderSubtle),
+            // Scrollable options
+            Expanded(
+              child: ListView.builder(
+                controller: scrollCtrl,
+                itemCount: options.length,
+                itemBuilder: (_, i) {
+                  final o = options[i];
+                  final isSelected = o == selected;
+                  return InkWell(
+                    onTap: () => Navigator.pop(ctx, o),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 14,
                       ),
-                      if (o == selected)
-                        const Icon(
-                          Icons.check_rounded,
-                          color: AppColors.primary,
-                          size: 18,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(color: tc.borderSubtle),
                         ),
-                    ],
-                  ),
-                ),
+                        color: isSelected ? tc.onSurface10 : Colors.transparent,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              o,
+                              style: TextStyle(
+                                color: isSelected ? tc.onSurface : tc.onSurface,
+                                fontSize: 15,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                              ),
+                            ),
+                          ),
+                          if (isSelected)
+                            Icon(Icons.check_rounded,
+                                color: tc.onSurface, size: 18),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
-            const SizedBox(height: 16),
           ],
         ),
       );

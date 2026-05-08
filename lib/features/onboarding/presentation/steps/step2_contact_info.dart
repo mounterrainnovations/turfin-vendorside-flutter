@@ -74,7 +74,7 @@ class _Step2State extends ConsumerState<Step2ContactInfo> {
 
           // ── Phone ───────────────────────────────────────────────────
           const OnbFieldLabel('Phone Number'),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           CustomTextField(
             hint: '+91 98765 43210',
             controller: _phoneCtrl,
@@ -82,11 +82,11 @@ class _Step2State extends ConsumerState<Step2ContactInfo> {
             onChanged: notifier.setPhone,
           ),
 
-          const SizedBox(height: 22),
+          const SizedBox(height: 12),
 
           // ── WhatsApp ────────────────────────────────────────────────
           const OnbFieldLabel('WhatsApp Number', optional: true),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           CustomTextField(
             hint: 'Same as phone if identical',
             controller: _whatsappCtrl,
@@ -103,11 +103,11 @@ class _Step2State extends ConsumerState<Step2ContactInfo> {
                 : null,
           ),
 
-          const SizedBox(height: 22),
+          const SizedBox(height: 12),
 
           // ── Email ───────────────────────────────────────────────────
           const OnbFieldLabel('Email Address'),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           CustomTextField(
             hint: 'business@example.com',
             controller: _emailCtrl,
@@ -115,11 +115,11 @@ class _Step2State extends ConsumerState<Step2ContactInfo> {
             onChanged: notifier.setEmail,
           ),
 
-          const SizedBox(height: 22),
+          const SizedBox(height: 12),
 
           // ── GST ─────────────────────────────────────────────────────
           const OnbFieldLabel('GST Number', optional: true),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           CustomTextField(
             hint: '27AABCU9603R1ZN',
             controller: _gstCtrl,
@@ -139,7 +139,7 @@ class _Step2State extends ConsumerState<Step2ContactInfo> {
 
           // ── Address line ────────────────────────────────────────────
           const OnbFieldLabel('Address'),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           CustomTextField(
             hint: 'House/Flat no., Street, Area',
             controller: _addressCtrl,
@@ -147,7 +147,7 @@ class _Step2State extends ConsumerState<Step2ContactInfo> {
             onChanged: notifier.setAddressLine,
           ),
 
-          const SizedBox(height: 22),
+          const SizedBox(height: 12),
 
           // ── City + Pincode row ──────────────────────────────────────
           Row(
@@ -159,7 +159,7 @@ class _Step2State extends ConsumerState<Step2ContactInfo> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const OnbFieldLabel('City'),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     CustomTextField(
                       hint: 'Mumbai',
                       controller: _cityCtrl,
@@ -175,7 +175,7 @@ class _Step2State extends ConsumerState<Step2ContactInfo> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const OnbFieldLabel('PIN Code'),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     _PincodeField(
                       controller: _pincodeCtrl,
                       onChanged: notifier.setPincode,
@@ -187,11 +187,11 @@ class _Step2State extends ConsumerState<Step2ContactInfo> {
             ],
           ),
 
-          const SizedBox(height: 22),
+          const SizedBox(height: 12),
 
           // ── State ───────────────────────────────────────────────────
           const OnbFieldLabel('State'),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           OnbDropdownTile(
             value: s.addressState.isEmpty ? null : s.addressState,
             placeholder: 'Select state',

@@ -214,11 +214,11 @@ class _VendorOnboardingScreenState
             ],
           ),
 
-          const SizedBox(height: 28),
+          const SizedBox(height: 20),
 
           // ── Step label + title ────────────────────────────────────
           SectionLabel('step ${s.step + 1} of 4'),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             _steps[s.step].$1,
             style: Theme.of(context).textTheme.displaySmall?.copyWith(
@@ -226,7 +226,7 @@ class _VendorOnboardingScreenState
                   letterSpacing: -0.3,
                 ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
             _steps[s.step].$2,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -234,7 +234,7 @@ class _VendorOnboardingScreenState
                 ),
           ),
 
-          const SizedBox(height: 28),
+          const SizedBox(height: 20),
         ],
       ),
     );

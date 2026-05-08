@@ -58,29 +58,29 @@ class _Step3State extends ConsumerState<Step3BankDetails> {
 
           // ── Account Holder Name ─────────────────────────────────────
           const OnbFieldLabel('Account Holder Name'),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           CustomTextField(
             hint: 'As printed on passbook',
             controller: _holderCtrl,
             onChanged: notifier.setAccountHolder,
           ),
 
-          const SizedBox(height: 22),
+          const SizedBox(height: 12),
 
           // ── Account Number ──────────────────────────────────────────
           const OnbFieldLabel('Account Number'),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _AccountNumberField(
             controller: _accountCtrl,
             onChanged: notifier.setAccountNumber,
             tc: tc,
           ),
 
-          const SizedBox(height: 22),
+          const SizedBox(height: 12),
 
           // ── IFSC Code ───────────────────────────────────────────────
           const OnbFieldLabel('IFSC Code'),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _IfscField(
             controller: _ifscCtrl,
             onChanged: notifier.setIfsc,
@@ -96,11 +96,11 @@ class _Step3State extends ConsumerState<Step3BankDetails> {
             ),
           ),
 
-          const SizedBox(height: 22),
+          const SizedBox(height: 12),
 
           // ── Branch Name ─────────────────────────────────────────────
           const OnbFieldLabel('Branch Name'),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           CustomTextField(
             hint: 'e.g. Andheri West, Mumbai',
             controller: _branchCtrl,

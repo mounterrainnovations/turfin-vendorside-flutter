@@ -1,9 +1,81 @@
 // lib/features/onboarding/presentation/pages/onboarding_under_review_screen.dart
 
+import 'package:archive/archive.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lottie/lottie.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/routing/app_router.dart';
+
+// ── Lottie loader for dotLottie (.lottie) ZIP containers ─────────────────────
+// dotLottie = ZIP containing animations/<id>.json (DEFLATE compressed).
+// We extract with the archive package, then feed raw JSON to the lottie parser.
+
+class _WaitingAnimation extends StatefulWidget {
+  const _WaitingAnimation();
+
+  @override
+  State<_WaitingAnimation> createState() => _WaitingAnimationState();
+}
+
+class _WaitingAnimationState extends State<_WaitingAnimation> {
+  LottieComposition? _composition;
+  bool _failed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final data  = await rootBundle.load('assets/Waiting.lottie');
+      final bytes = data.buffer.asUint8List();
+
+      // Extract the dotLottie ZIP and find the first .json animation file.
+      final archive = ZipDecoder().decodeBytes(bytes);
+      ArchiveFile? jsonFile;
+      for (final file in archive.files) {
+        if (file.isFile && file.name.endsWith('.json')) {
+          jsonFile = file;
+          break;
+        }
+      }
+
+      if (jsonFile == null) throw Exception('No JSON found in dotLottie');
+
+      final jsonBytes    = jsonFile.content as Uint8List;
+      final composition  = await LottieComposition.fromByteData(
+        ByteData.sublistView(jsonBytes),
+      );
+      if (mounted) setState(() => _composition = composition);
+    } catch (_) {
+      if (mounted) setState(() => _failed = true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_composition != null) {
+      return Lottie(
+        composition: _composition!,
+        width: 220,
+        height: 220,
+        fit: BoxFit.contain,
+        repeat: true,
+      );
+    }
+    if (_failed) {
+      return Icon(Icons.hourglass_top_rounded,
+          size: 96, color: AppThemeColors.of(context).onSurface30);
+    }
+    return const SizedBox(width: 220, height: 220);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 class OnboardingUnderReviewScreen extends ConsumerWidget {
   const OnboardingUnderReviewScreen({super.key});
@@ -21,27 +93,8 @@ class OnboardingUnderReviewScreen extends ConsumerWidget {
             children: [
               const Spacer(flex: 2),
 
-              // ── Icon ───────────────────────────────────────────────
-              Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  color: AppColors.primarySubtle,
-                  borderRadius: BorderRadius.circular(48),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: AppColors.primaryGlow,
-                      blurRadius: 32,
-                      spreadRadius: 4,
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.hourglass_top_rounded,
-                  color: AppColors.primary,
-                  size: 48,
-                ),
-              ),
+              // ── Lottie animation ───────────────────────────────────
+              const _WaitingAnimation(),
 
               const SizedBox(height: 36),
 

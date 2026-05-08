@@ -63,18 +63,18 @@ class _Step1State extends ConsumerState<Step1BusinessInfo> {
 
           // ── Business Name ───────────────────────────────────────────
           const OnbFieldLabel('Business Name'),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           CustomTextField(
             hint: 'e.g. Ace Sports Arena',
             controller: _businessNameCtrl,
             onChanged: notifier.setBusinessName,
           ),
 
-          const SizedBox(height: 22),
+          const SizedBox(height: 12),
 
           // ── Business Type ───────────────────────────────────────────
           const OnbFieldLabel('Business Type'),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           OnbDropdownTile(
             value: s.businessType.isEmpty ? null : s.businessType,
             placeholder: 'Select business structure',
@@ -89,11 +89,11 @@ class _Step1State extends ConsumerState<Step1BusinessInfo> {
             },
           ),
 
-          const SizedBox(height: 22),
+          const SizedBox(height: 12),
 
           // ── Business Service ────────────────────────────────────────
           const OnbFieldLabel('Primary Service'),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           OnbDropdownTile(
             value: s.businessService.isEmpty ? null : s.businessService,
             placeholder: 'Select what you offer',
@@ -108,11 +108,11 @@ class _Step1State extends ConsumerState<Step1BusinessInfo> {
             },
           ),
 
-          const SizedBox(height: 22),
+          const SizedBox(height: 12),
 
           // ── Owner Name ──────────────────────────────────────────────
           const OnbFieldLabel('Owner / Proprietor Name'),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           CustomTextField(
             hint: 'e.g. Rajesh Kumar',
             controller: _ownerNameCtrl,
