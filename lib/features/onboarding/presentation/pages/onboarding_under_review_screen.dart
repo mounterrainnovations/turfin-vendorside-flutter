@@ -34,11 +34,14 @@ class _WaitingAnimationState extends State<_WaitingAnimation> {
       final data  = await rootBundle.load('assets/Waiting.lottie');
       final bytes = data.buffer.asUint8List();
 
-      // Extract the dotLottie ZIP and find the first .json animation file.
+      // Extract the dotLottie ZIP — animation lives in animations/*.json,
+      // not in the root manifest.json which is metadata only.
       final archive = ZipDecoder().decodeBytes(bytes);
       ArchiveFile? jsonFile;
       for (final file in archive.files) {
-        if (file.isFile && file.name.endsWith('.json')) {
+        if (file.isFile &&
+            file.name.startsWith('animations/') &&
+            file.name.endsWith('.json')) {
           jsonFile = file;
           break;
         }
