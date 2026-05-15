@@ -30,12 +30,24 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/TurfinLogo.png',
+            Container(
               width: 80,
               height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: tc.surface,
+                border: Border.all(color: tc.borderDefault, width: 1.5),
+              ),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/TurfinLogo.png',
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             Text(
               'Turfin Ops',
               style: TextStyle(

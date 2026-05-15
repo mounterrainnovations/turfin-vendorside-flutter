@@ -59,10 +59,22 @@ class VendorWelcomeScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Row(
                     children: [
-                      Image.asset(
-                        'assets/TurfinLogo.png',
+                      Container(
                         width: 52,
                         height: 52,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: tc.surface,
+                          border: Border.all(color: tc.borderDefault, width: 1.5),
+                        ),
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/TurfinLogo.png',
+                            width: 52,
+                            height: 52,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 14),
                       Column(
@@ -76,6 +88,7 @@ class VendorWelcomeScreen extends ConsumerWidget {
                               fontWeight: FontWeight.w800,
                             ),
                           ),
+                          const SizedBox(height: 3),
                           Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 2),

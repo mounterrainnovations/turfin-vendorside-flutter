@@ -6,102 +6,166 @@ class VendorOnboardingState {
   final int step;
   final bool submitted;
 
-  // Step 1 — Business
-  final String businessName;
-  final String businessType;
-  final String businessService;
-  final String ownerName;
-
-  // Step 2 — Contact & Identity
-  final String phone;
-  final String whatsapp;
+  // Step 2 — Personal Details
+  final String fullName;
   final String email;
-  final String gstNumber;
-  final String addressLine;
+
+  // Step 3 — Arena Setup, Section A
+  final String arenaName;
+  final String arenaDescription;
+  final List<String> sportsAvailable;
+
+  // Step 3 — Arena Setup, Section B
+  final String fullAddress;
+  final String landmark;
   final String city;
-  final String addressState;
+  final String arenaState;
   final String pincode;
+  final double? mapLat;
+  final double? mapLng;
 
-  // Step 3 — Bank
-  final String accountHolder;
-  final String accountNumber;
-  final String ifscCode;
-  final String branchName;
+  // Step 3 — Arena Setup, Section C
+  final String? coverPhotoPath;
+  final List<String> galleryPhotoPaths;
+  final List<String> videoPaths;
 
-  // Step 4 — KYC (local file paths, uploaded later)
-  final String? aadharPath;
+  // Step 3 — Arena Setup, Section D
+  final List<String> amenities;
+
+  // Step 3 — Arena Setup, Section E
+  final String openingTime;
+  final String closingTime;
+  final List<String> availableDays;
+  final String weekdayPrice;
+  final String weekendPrice;
+  final String peakHourPrice;
+  final String slotDuration;
+
+  // Step 4 — KYC Verification
+  final String? aadhaarPath;
   final String? panPath;
-  final String? companyRegPath;
+  final String gstNumber;
+  final String? gstCertPath;
+
+  // Step 5 — Bank & Payout Details
+  final String accountHolderName;
+  final String bankName;
+  final String accountNumber;
+  final String confirmAccountNumber;
+  final String ifscCode;
+  final String? cancelledChequePath;
 
   const VendorOnboardingState({
     this.step = 0,
     this.submitted = false,
-    this.businessName = '',
-    this.businessType = '',
-    this.businessService = '',
-    this.ownerName = '',
-    this.phone = '',
-    this.whatsapp = '',
+    this.fullName = '',
     this.email = '',
-    this.gstNumber = '',
-    this.addressLine = '',
+    this.arenaName = '',
+    this.arenaDescription = '',
+    this.sportsAvailable = const [],
+    this.fullAddress = '',
+    this.landmark = '',
     this.city = '',
-    this.addressState = '',
+    this.arenaState = '',
     this.pincode = '',
-    this.accountHolder = '',
-    this.accountNumber = '',
-    this.ifscCode = '',
-    this.branchName = '',
-    this.aadharPath,
+    this.mapLat,
+    this.mapLng,
+    this.coverPhotoPath,
+    this.galleryPhotoPaths = const [],
+    this.videoPaths = const [],
+    this.amenities = const [],
+    this.openingTime = '',
+    this.closingTime = '',
+    this.availableDays = const [],
+    this.weekdayPrice = '',
+    this.weekendPrice = '',
+    this.peakHourPrice = '',
+    this.slotDuration = '',
+    this.aadhaarPath,
     this.panPath,
-    this.companyRegPath,
+    this.gstNumber = '',
+    this.gstCertPath,
+    this.accountHolderName = '',
+    this.bankName = '',
+    this.accountNumber = '',
+    this.confirmAccountNumber = '',
+    this.ifscCode = '',
+    this.cancelledChequePath,
   });
 
   VendorOnboardingState copyWith({
     int? step,
     bool? submitted,
-    String? businessName,
-    String? businessType,
-    String? businessService,
-    String? ownerName,
-    String? phone,
-    String? whatsapp,
+    String? fullName,
     String? email,
-    String? gstNumber,
-    String? addressLine,
+    String? arenaName,
+    String? arenaDescription,
+    List<String>? sportsAvailable,
+    String? fullAddress,
+    String? landmark,
     String? city,
-    String? addressState,
+    String? arenaState,
     String? pincode,
-    String? accountHolder,
-    String? accountNumber,
-    String? ifscCode,
-    String? branchName,
-    String? aadharPath,
+    double? mapLat,
+    double? mapLng,
+    String? coverPhotoPath,
+    List<String>? galleryPhotoPaths,
+    List<String>? videoPaths,
+    List<String>? amenities,
+    String? openingTime,
+    String? closingTime,
+    List<String>? availableDays,
+    String? weekdayPrice,
+    String? weekendPrice,
+    String? peakHourPrice,
+    String? slotDuration,
+    String? aadhaarPath,
     String? panPath,
-    String? companyRegPath,
+    String? gstNumber,
+    String? gstCertPath,
+    String? accountHolderName,
+    String? bankName,
+    String? accountNumber,
+    String? confirmAccountNumber,
+    String? ifscCode,
+    String? cancelledChequePath,
   }) {
     return VendorOnboardingState(
-      step:            step            ?? this.step,
-      submitted:       submitted       ?? this.submitted,
-      businessName:    businessName    ?? this.businessName,
-      businessType:    businessType    ?? this.businessType,
-      businessService: businessService ?? this.businessService,
-      ownerName:       ownerName       ?? this.ownerName,
-      phone:           phone           ?? this.phone,
-      whatsapp:        whatsapp        ?? this.whatsapp,
-      email:           email           ?? this.email,
-      gstNumber:       gstNumber       ?? this.gstNumber,
-      addressLine:     addressLine     ?? this.addressLine,
-      city:            city            ?? this.city,
-      addressState:    addressState    ?? this.addressState,
-      pincode:         pincode         ?? this.pincode,
-      accountHolder:   accountHolder   ?? this.accountHolder,
-      accountNumber:   accountNumber   ?? this.accountNumber,
-      ifscCode:        ifscCode        ?? this.ifscCode,
-      branchName:      branchName      ?? this.branchName,
-      aadharPath:      aadharPath      ?? this.aadharPath,
-      panPath:         panPath         ?? this.panPath,
-      companyRegPath:  companyRegPath  ?? this.companyRegPath,
+      step:                 step                 ?? this.step,
+      submitted:            submitted            ?? this.submitted,
+      fullName:             fullName             ?? this.fullName,
+      email:                email                ?? this.email,
+      arenaName:            arenaName            ?? this.arenaName,
+      arenaDescription:     arenaDescription     ?? this.arenaDescription,
+      sportsAvailable:      sportsAvailable      ?? this.sportsAvailable,
+      fullAddress:          fullAddress          ?? this.fullAddress,
+      landmark:             landmark             ?? this.landmark,
+      city:                 city                 ?? this.city,
+      arenaState:           arenaState           ?? this.arenaState,
+      pincode:              pincode              ?? this.pincode,
+      mapLat:               mapLat               ?? this.mapLat,
+      mapLng:               mapLng               ?? this.mapLng,
+      coverPhotoPath:       coverPhotoPath       ?? this.coverPhotoPath,
+      galleryPhotoPaths:    galleryPhotoPaths    ?? this.galleryPhotoPaths,
+      videoPaths:           videoPaths           ?? this.videoPaths,
+      amenities:            amenities            ?? this.amenities,
+      openingTime:          openingTime          ?? this.openingTime,
+      closingTime:          closingTime          ?? this.closingTime,
+      availableDays:        availableDays        ?? this.availableDays,
+      weekdayPrice:         weekdayPrice         ?? this.weekdayPrice,
+      weekendPrice:         weekendPrice         ?? this.weekendPrice,
+      peakHourPrice:        peakHourPrice        ?? this.peakHourPrice,
+      slotDuration:         slotDuration         ?? this.slotDuration,
+      aadhaarPath:          aadhaarPath          ?? this.aadhaarPath,
+      panPath:              panPath              ?? this.panPath,
+      gstNumber:            gstNumber            ?? this.gstNumber,
+      gstCertPath:          gstCertPath          ?? this.gstCertPath,
+      accountHolderName:    accountHolderName    ?? this.accountHolderName,
+      bankName:             bankName             ?? this.bankName,
+      accountNumber:        accountNumber        ?? this.accountNumber,
+      confirmAccountNumber: confirmAccountNumber ?? this.confirmAccountNumber,
+      ifscCode:             ifscCode             ?? this.ifscCode,
+      cancelledChequePath:  cancelledChequePath  ?? this.cancelledChequePath,
     );
   }
 }
@@ -115,32 +179,54 @@ class VendorOnboardingNotifier extends StateNotifier<VendorOnboardingState> {
   }
   void submit() => state = state.copyWith(submitted: true);
 
-  // Step 1
-  void setBusinessName(String v)    => state = state.copyWith(businessName: v);
-  void setBusinessType(String v)    => state = state.copyWith(businessType: v);
-  void setBusinessService(String v) => state = state.copyWith(businessService: v);
-  void setOwnerName(String v)       => state = state.copyWith(ownerName: v);
+  // Step 2 — Personal Details
+  void setFullName(String v) => state = state.copyWith(fullName: v);
+  void setEmail(String v)    => state = state.copyWith(email: v);
 
-  // Step 2
-  void setPhone(String v)        => state = state.copyWith(phone: v);
-  void setWhatsapp(String v)     => state = state.copyWith(whatsapp: v);
-  void setEmail(String v)        => state = state.copyWith(email: v);
-  void setGst(String v)          => state = state.copyWith(gstNumber: v);
-  void setAddressLine(String v)  => state = state.copyWith(addressLine: v);
-  void setCity(String v)         => state = state.copyWith(city: v);
-  void setAddressState(String v) => state = state.copyWith(addressState: v);
-  void setPincode(String v)      => state = state.copyWith(pincode: v);
+  // Step 3 — Arena Setup, Section A
+  void setArenaName(String v)        => state = state.copyWith(arenaName: v);
+  void setArenaDescription(String v) => state = state.copyWith(arenaDescription: v);
+  void setSports(List<String> v)     => state = state.copyWith(sportsAvailable: v);
 
-  // Step 3
-  void setAccountHolder(String v) => state = state.copyWith(accountHolder: v);
-  void setAccountNumber(String v) => state = state.copyWith(accountNumber: v);
-  void setIfsc(String v)          => state = state.copyWith(ifscCode: v);
-  void setBranchName(String v)    => state = state.copyWith(branchName: v);
+  // Step 3 — Arena Setup, Section B
+  void setFullAddress(String v) => state = state.copyWith(fullAddress: v);
+  void setLandmark(String v)    => state = state.copyWith(landmark: v);
+  void setCity(String v)        => state = state.copyWith(city: v);
+  void setArenaState(String v)  => state = state.copyWith(arenaState: v);
+  void setPincode(String v)     => state = state.copyWith(pincode: v);
+  void setMapLocation(double lat, double lng) =>
+      state = state.copyWith(mapLat: lat, mapLng: lng);
 
-  // Step 4
-  void setAadhar(String path)     => state = state.copyWith(aadharPath: path);
-  void setPan(String path)        => state = state.copyWith(panPath: path);
-  void setCompanyReg(String path) => state = state.copyWith(companyRegPath: path);
+  // Step 3 — Arena Setup, Section C
+  void setCoverPhoto(String path)       => state = state.copyWith(coverPhotoPath: path);
+  void setGalleryPhotos(List<String> v) => state = state.copyWith(galleryPhotoPaths: v);
+  void setVideos(List<String> v)        => state = state.copyWith(videoPaths: v);
+
+  // Step 3 — Arena Setup, Section D
+  void setAmenities(List<String> v) => state = state.copyWith(amenities: v);
+
+  // Step 3 — Arena Setup, Section E
+  void setOpeningTime(String v)         => state = state.copyWith(openingTime: v);
+  void setClosingTime(String v)         => state = state.copyWith(closingTime: v);
+  void setAvailableDays(List<String> v) => state = state.copyWith(availableDays: v);
+  void setWeekdayPrice(String v)        => state = state.copyWith(weekdayPrice: v);
+  void setWeekendPrice(String v)        => state = state.copyWith(weekendPrice: v);
+  void setPeakHourPrice(String v)       => state = state.copyWith(peakHourPrice: v);
+  void setSlotDuration(String v)        => state = state.copyWith(slotDuration: v);
+
+  // Step 4 — KYC
+  void setAadhaar(String path)   => state = state.copyWith(aadhaarPath: path);
+  void setPan(String path)       => state = state.copyWith(panPath: path);
+  void setGstNumber(String v)    => state = state.copyWith(gstNumber: v);
+  void setGstCert(String path)   => state = state.copyWith(gstCertPath: path);
+
+  // Step 5 — Bank Details
+  void setAccountHolderName(String v)    => state = state.copyWith(accountHolderName: v);
+  void setBankName(String v)             => state = state.copyWith(bankName: v);
+  void setAccountNumber(String v)        => state = state.copyWith(accountNumber: v);
+  void setConfirmAccountNumber(String v) => state = state.copyWith(confirmAccountNumber: v);
+  void setIfsc(String v)                 => state = state.copyWith(ifscCode: v);
+  void setCancelledCheque(String path)   => state = state.copyWith(cancelledChequePath: path);
 }
 
 final vendorOnboardingProvider =

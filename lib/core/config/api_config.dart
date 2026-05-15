@@ -30,4 +30,8 @@ class ApiConfig {
 
   // Dashboard
   static const String dashboard = '$baseUrl/dashboard/vendor';
+
+  // Onboarding options
+  static const String sports    = '$baseUrl/sports';
+  static const String amenities = '$baseUrl/amenities';
 }
