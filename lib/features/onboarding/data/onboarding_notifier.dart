@@ -23,6 +23,7 @@ class VendorOnboardingState {
   final String pincode;
   final double? mapLat;
   final double? mapLng;
+  final String mapAddress;
 
   // Step 3 — Arena Setup, Section C
   final String? coverPhotoPath;
@@ -70,6 +71,7 @@ class VendorOnboardingState {
     this.pincode = '',
     this.mapLat,
     this.mapLng,
+    this.mapAddress = '',
     this.coverPhotoPath,
     this.galleryPhotoPaths = const [],
     this.videoPaths = const [],
@@ -108,6 +110,7 @@ class VendorOnboardingState {
     String? pincode,
     double? mapLat,
     double? mapLng,
+    String? mapAddress,
     String? coverPhotoPath,
     List<String>? galleryPhotoPaths,
     List<String>? videoPaths,
@@ -145,6 +148,7 @@ class VendorOnboardingState {
       pincode:              pincode              ?? this.pincode,
       mapLat:               mapLat               ?? this.mapLat,
       mapLng:               mapLng               ?? this.mapLng,
+      mapAddress:           mapAddress           ?? this.mapAddress,
       coverPhotoPath:       coverPhotoPath       ?? this.coverPhotoPath,
       galleryPhotoPaths:    galleryPhotoPaths    ?? this.galleryPhotoPaths,
       videoPaths:           videoPaths           ?? this.videoPaths,
@@ -194,8 +198,8 @@ class VendorOnboardingNotifier extends StateNotifier<VendorOnboardingState> {
   void setCity(String v)        => state = state.copyWith(city: v);
   void setArenaState(String v)  => state = state.copyWith(arenaState: v);
   void setPincode(String v)     => state = state.copyWith(pincode: v);
-  void setMapLocation(double lat, double lng) =>
-      state = state.copyWith(mapLat: lat, mapLng: lng);
+  void setMapLocation(double lat, double lng, String address) =>
+      state = state.copyWith(mapLat: lat, mapLng: lng, mapAddress: address);
 
   // Step 3 — Arena Setup, Section C
   void setCoverPhoto(String path)       => state = state.copyWith(coverPhotoPath: path);

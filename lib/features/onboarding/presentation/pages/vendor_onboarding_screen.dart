@@ -41,11 +41,12 @@ class _VendorOnboardingScreenState
 
   bool _isStepValid(int step, VendorOnboardingState s) {
     switch (step) {
-      case 0: // Personal Details — only fullName is required
-        return s.fullName.isNotEmpty;
+      case 0: // Personal Details
+        return s.fullName.isNotEmpty && s.email.isNotEmpty;
 
       case 1: // Arena Setup — required fields across all sections
         return s.arenaName.isNotEmpty &&
+            s.arenaDescription.isNotEmpty &&
             s.sportsAvailable.isNotEmpty &&
             s.fullAddress.isNotEmpty &&
             s.city.isNotEmpty &&
@@ -120,7 +121,9 @@ class _VendorOnboardingScreenState
     final String message;
     switch (step) {
       case 0:
-        message = 'Please enter your full name.';
+        message = s.fullName.isEmpty
+            ? 'Please enter your full name.'
+            : 'Please enter your email address.';
       case 1:
         if (s.arenaName.isEmpty) {
           message = 'Please enter your arena name.';

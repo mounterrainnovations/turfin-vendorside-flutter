@@ -10,6 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../data/arena_options_provider.dart';
 import '../../data/onboarding_notifier.dart';
+import '../pages/map_location_picker_screen.dart';
 import '../widgets/onboarding_widgets.dart';
 
 const _indianStates = [
@@ -147,84 +148,15 @@ class _Step2State extends ConsumerState<Step2ArenaSetup> {
     return '$h:$m $period';
   }
 
-  // ── Map location dialog ───────────────────────────────────────────────────
+  // ── Open map location picker ──────────────────────────────────────────────
 
-  Future<void> _showMapDialog(BuildContext context) async {
-    final s = ref.read(vendorOnboardingProvider);
-    final latCtrl =
-        TextEditingController(text: s.mapLat?.toStringAsFixed(6) ?? '');
-    final lngCtrl =
-        TextEditingController(text: s.mapLng?.toStringAsFixed(6) ?? '');
-    final tc = AppThemeColors.of(context);
-
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: tc.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            const Icon(Icons.location_pin, color: AppColors.primary, size: 22),
-            const SizedBox(width: 8),
-            Text('Set Location',
-                style: TextStyle(color: tc.onSurface, fontWeight: FontWeight.w700)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Enter coordinates from Google Maps\n(tap and hold your arena pin → share → copy coordinates)',
-              style: TextStyle(
-                  color: tc.onSurface60, fontSize: 12, height: 1.5),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: latCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-              style: TextStyle(color: tc.onSurface),
-              decoration: InputDecoration(
-                hintText: 'Latitude  e.g. 19.0760',
-                hintStyle: TextStyle(color: tc.onSurface30),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: lngCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-              style: TextStyle(color: tc.onSurface),
-              decoration: InputDecoration(
-                hintText: 'Longitude  e.g. 72.8777',
-                hintStyle: TextStyle(color: tc.onSurface30),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel',
-                style: TextStyle(color: tc.onSurface60)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final lat = double.tryParse(latCtrl.text.trim());
-              final lng = double.tryParse(lngCtrl.text.trim());
-              if (lat != null && lng != null) {
-                ref
-                    .read(vendorOnboardingProvider.notifier)
-                    .setMapLocation(lat, lng);
-              }
-              Navigator.pop(ctx);
-            },
-            child: const Text('Set Location'),
-          ),
-        ],
+  void _openMapPicker(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const MapLocationPickerScreen(),
       ),
     );
-    latCtrl.dispose();
-    lngCtrl.dispose();
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
@@ -278,7 +210,7 @@ class _Step2State extends ConsumerState<Step2ArenaSetup> {
 
           const SizedBox(height: 16),
 
-          const OnbFieldLabel('Arena Description', optional: true),
+          const OnbFieldLabel('Arena Description'),
           const SizedBox(height: 6),
           CustomTextField(
             hint: 'Describe your arena, facilities, unique features…',
@@ -397,13 +329,13 @@ class _Step2State extends ConsumerState<Step2ArenaSetup> {
 
           const SizedBox(height: 16),
 
-          const OnbFieldLabel('Google Maps Location Pin'),
+          const OnbFieldLabel('Location on Map'),
           const SizedBox(height: 6),
           _MapLocationTile(
-            lat: s.mapLat,
-            lng: s.mapLng,
+            address: s.mapAddress,
+            isSet: s.mapLat != null,
             tc: tc,
-            onTap: () => _showMapDialog(context),
+            onTap: () => _openMapPicker(context),
           ),
 
           const OnbSectionDivider(),
@@ -611,55 +543,56 @@ class _Step2State extends ConsumerState<Step2ArenaSetup> {
 // ── Map location tile ─────────────────────────────────────────────────────────
 
 class _MapLocationTile extends StatelessWidget {
-  final double? lat;
-  final double? lng;
+  final String address;
+  final bool isSet;
   final AppThemeColors tc;
   final VoidCallback onTap;
 
   const _MapLocationTile({
-    required this.lat,
-    required this.lng,
+    required this.address,
+    required this.isSet,
     required this.tc,
     required this.onTap,
   });
-
-  bool get _isSet => lat != null && lng != null;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 56,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        constraints: const BoxConstraints(minHeight: 56),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: _isSet ? AppColors.primarySubtle : tc.surface,
+          color: isSet ? AppColors.primarySubtle : tc.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: _isSet ? AppColors.primary70 : tc.borderDefault,
+            color: isSet ? AppColors.primary70 : tc.borderDefault,
           ),
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Icon(
               Icons.location_pin,
-              color: _isSet ? AppColors.primary : tc.onSurface50,
+              color: isSet ? AppColors.primary : tc.onSurface50,
               size: 20,
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                _isSet
-                    ? '${lat!.toStringAsFixed(4)}, ${lng!.toStringAsFixed(4)}'
-                    : 'Tap to set location',
+                isSet && address.isNotEmpty ? address : 'Tap to pick location on map',
                 style: TextStyle(
-                  color: _isSet ? tc.onSurface : tc.onSurface30,
-                  fontSize: 15,
+                  color: isSet ? tc.onSurface : tc.onSurface30,
+                  fontSize: 14,
                   fontWeight: FontWeight.w500,
+                  height: 1.4,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            Icon(Icons.edit_outlined, color: tc.onSurface50, size: 18),
+            const SizedBox(width: 8),
+            Icon(Icons.chevron_right_rounded, color: tc.onSurface50, size: 20),
           ],
         ),
       ),
@@ -726,24 +659,35 @@ class _CoverPhotoTile extends StatelessWidget {
                   ],
                 ),
               )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add_photo_alternate_outlined,
-                      color: tc.onSurface30, size: 36),
-                  const SizedBox(height: 8),
-                  Text('Upload Cover Photo',
+            : Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.add_photo_alternate_outlined,
+                        color: tc.onSurface30, size: 32),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Upload Cover Photo',
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                           color: tc.onSurface60,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 4),
-                  Text('JPG, PNG  ·  Max 5 MB',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      'JPG or PNG · Max 5 MB',
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                           color: tc.onSurface30,
                           fontSize: 11,
-                          fontWeight: FontWeight.w400)),
-                ],
+                          fontWeight: FontWeight.w400),
+                    ),
+                  ],
+                ),
               ),
       ),
     );

@@ -199,18 +199,17 @@ class OnbSelectedChips extends StatelessWidget {
           .map(
             (item) => Container(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: AppColors.primarySubtle,
+                color: AppColors.primary,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.primary70),
               ),
               child: Text(
                 item,
                 style: const TextStyle(
-                  color: AppColors.primary,
+                  color: Colors.black,
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
@@ -484,10 +483,10 @@ Future<List<String>?> showOnbMultiSelectPicker(
                   ),
                   TextButton(
                     onPressed: () => Navigator.pop(ctx, temp),
-                    child: const Text(
+                    child: Text(
                       'Done',
                       style: TextStyle(
-                        color: AppColors.primary,
+                        color: AppThemeColors.of(ctx).accentText,
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
                       ),

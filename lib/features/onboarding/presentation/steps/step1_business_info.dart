@@ -55,7 +55,7 @@ class _Step1State extends ConsumerState<Step1PersonalDetails> {
           const SizedBox(height: 20),
 
           // ── Email Address (optional) ────────────────────────────────
-          const OnbFieldLabel('Email Address', optional: true),
+          const OnbFieldLabel('Email Address'),
           const SizedBox(height: 6),
           CustomTextField(
             hint: 'e.g. rajesh@example.com',

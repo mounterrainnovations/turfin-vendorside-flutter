@@ -5,6 +5,10 @@
     <!-- Internet -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Location (map picker) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <!-- Required for flutter_secure_storage on Android <6 -->
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
 
