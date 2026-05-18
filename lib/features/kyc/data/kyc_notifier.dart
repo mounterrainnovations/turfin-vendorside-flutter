@@ -199,14 +199,15 @@ class KycNotifier extends AsyncNotifier<KycState> {
 
     try {
       final token = await _freshToken();
-      if (token == null) throw Exception('Session expired.');
+      if (token == null) throw Exception('Session expired. Please sign in again.');
 
-      // Resolve vendor ID for an isolated storage path
+      // Resolve vendor ID — try memory → storage → live fetch
       final authNotifier = ref.read(authNotifierProvider.notifier);
       String? vendorId = ref.read(authNotifierProvider).valueOrNull?.vendorId;
       vendorId ??= await authNotifier.getVendorId();
+      vendorId ??= await authNotifier.fetchAndSaveVendorId(token);
       if (vendorId == null || vendorId.isEmpty) {
-        throw Exception('Could not resolve vendor ID. Please sign out and sign in again.');
+        throw Exception('Could not resolve vendor profile. Please sign out and sign in again.');
       }
 
       // Step 1: get signed upload URL
@@ -217,17 +218,18 @@ class KycNotifier extends AsyncNotifier<KycState> {
       ).timeout(const Duration(seconds: 10));
 
       if (uploadUrlRes.statusCode != 200) {
-        throw Exception('Could not get upload URL.');
+        throw Exception(_parseError(uploadUrlRes.body, uploadUrlRes.statusCode,
+            fallback: 'Could not get upload URL'));
       }
-      final uploadBody = jsonDecode(uploadUrlRes.body) as Map<String, dynamic>;
-      final uploadData = uploadBody['data'] as Map<String, dynamic>?;
-      final signedUrl  = uploadData?['uploadUrl'] as String?;
-      final storagePath = uploadData?['path']     as String?;
+      final uploadBody  = jsonDecode(uploadUrlRes.body) as Map<String, dynamic>;
+      final uploadData  = uploadBody['data'] as Map<String, dynamic>?;
+      final signedUrl   = uploadData?['uploadUrl'] as String?;
+      final storagePath = uploadData?['path']      as String?;
       if (signedUrl == null || signedUrl.isEmpty) {
-        throw Exception('Could not get upload URL.');
+        throw Exception('Upload URL missing in response.');
       }
       if (storagePath == null || storagePath.isEmpty) {
-        throw Exception('Could not get storage path.');
+        throw Exception('Storage path missing in response.');
       }
 
       // Step 2: PUT file directly to Supabase
@@ -239,7 +241,7 @@ class KycNotifier extends AsyncNotifier<KycState> {
       ).timeout(const Duration(seconds: 30));
 
       if (putRes.statusCode != 200 && putRes.statusCode != 201) {
-        throw Exception('Upload failed (${putRes.statusCode}).');
+        throw Exception('File upload failed (HTTP ${putRes.statusCode}).');
       }
 
       // Step 3: submit path to KYC endpoint
@@ -255,9 +257,8 @@ class KycNotifier extends AsyncNotifier<KycState> {
       ).timeout(const Duration(seconds: 10));
 
       if (submitRes.statusCode != 200 && submitRes.statusCode != 201) {
-        final decoded = jsonDecode(submitRes.body) as Map<String, dynamic>;
-        final msg = decoded['message'] as String? ?? 'Submission failed.';
-        throw Exception(msg);
+        throw Exception(_parseError(submitRes.body, submitRes.statusCode,
+            fallback: 'Document submission failed'));
       }
 
       // Get signed view URL for preview
@@ -302,6 +303,26 @@ class KycNotifier extends AsyncNotifier<KycState> {
     updated[field] = (updated[field] ?? const KycFieldState())
         .copyWith(status: FieldUploadStatus.idle, error: error);
     state = AsyncValue.data(current.copyWith(fields: updated));
+  }
+
+  // Parses { success: false, error: { code, message, details: { errors: [...] } } }
+  String _parseError(String body, int status, {required String fallback}) {
+    try {
+      final decoded = jsonDecode(body) as Map<String, dynamic>;
+      final error   = decoded['error'] as Map<String, dynamic>?;
+      if (error == null) return '$fallback (HTTP $status)';
+
+      // Validation errors carry the specific field messages in details.errors
+      final details = error['details'] as Map<String, dynamic>?;
+      final errors  = details?['errors'];
+      if (errors is List && errors.isNotEmpty) {
+        return errors.map((e) => e.toString()).join(', ');
+      }
+
+      final msg = error['message'] as String?;
+      if (msg != null && msg.isNotEmpty) return msg;
+    } catch (_) {}
+    return '$fallback (HTTP $status)';
   }
 
   Future<String?> _freshToken() async {

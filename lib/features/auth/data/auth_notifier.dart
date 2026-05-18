@@ -187,7 +187,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       await _storage.write(key: _kIdentityId,   value: identity['id']               as String);
       await _storage.write(key: _kEmail,        value: identity['email']            as String);
 
-      final vendorId = await _fetchAndSaveVendorId(accessToken);
+      final vendorId = await fetchAndSaveVendorId(accessToken);
 
       state = AsyncValue.data(AuthState(
         isLoggedIn: true,
@@ -235,7 +235,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       await _storage.write(key: _kIdentityId,   value: identity['id']       as String);
       await _storage.write(key: _kEmail,        value: identity['email']    as String);
 
-      final vendorId = await _fetchAndSaveVendorId(accessToken);
+      final vendorId = await fetchAndSaveVendorId(accessToken);
 
       state = AsyncValue.data(AuthState(
         isLoggedIn: true,
@@ -252,7 +252,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
 
   // ── Fetch and persist vendor ID ───────────────────────────────────────────
 
-  Future<String?> _fetchAndSaveVendorId(String token) async {
+  Future<String?> fetchAndSaveVendorId(String token) async {
     try {
       final res = await http.get(
         Uri.parse(ApiConfig.vendorMe),
