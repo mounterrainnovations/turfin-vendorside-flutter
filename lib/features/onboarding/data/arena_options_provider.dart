@@ -3,10 +3,10 @@
 // Fetches sports and amenities lists from the backend.
 // Falls back to hardcoded defaults if the API is unreachable.
 
-import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
 import '../../../core/config/api_config.dart';
+import '../../../core/network/dio_client.dart';
 
 const _defaultSports = [
   'Football',
@@ -32,8 +32,7 @@ const _defaultAmenities = [
   'Other Amenities',
 ];
 
-List<String> _parseList(String body) {
-  final data = jsonDecode(body);
+List<String> _parseList(dynamic data) {
   if (data is List) return data.map((e) => e.toString()).toList();
   if (data is Map && data['data'] is List) {
     return (data['data'] as List).map((e) => e.toString()).toList();
@@ -43,11 +42,15 @@ List<String> _parseList(String body) {
 
 final sportsOptionsProvider = FutureProvider<List<String>>((ref) async {
   try {
-    final res = await http
-        .get(Uri.parse(ApiConfig.sports))
-        .timeout(const Duration(seconds: 5));
+    final res = await DioClient.dio.get(
+      ApiConfig.kSports,
+      options: Options(
+        sendTimeout: const Duration(seconds: 5),
+        receiveTimeout: const Duration(seconds: 5),
+      ),
+    );
     if (res.statusCode == 200) {
-      final list = _parseList(res.body);
+      final list = _parseList(res.data);
       if (list.isNotEmpty) return list;
     }
   } catch (_) {}
@@ -56,11 +59,15 @@ final sportsOptionsProvider = FutureProvider<List<String>>((ref) async {
 
 final amenitiesOptionsProvider = FutureProvider<List<String>>((ref) async {
   try {
-    final res = await http
-        .get(Uri.parse(ApiConfig.amenities))
-        .timeout(const Duration(seconds: 5));
+    final res = await DioClient.dio.get(
+      ApiConfig.kAmenities,
+      options: Options(
+        sendTimeout: const Duration(seconds: 5),
+        receiveTimeout: const Duration(seconds: 5),
+      ),
+    );
     if (res.statusCode == 200) {
-      final list = _parseList(res.body);
+      final list = _parseList(res.data);
       if (list.isNotEmpty) return list;
     }
   } catch (_) {}

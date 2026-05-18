@@ -21,6 +21,10 @@ dependencies:
 
   # HTTP
   http: ^1.2.2
+  dio: ^5.7.0
+
+  # Network inspector (debug/staging only — tree-shaken in production)
+  alice: ^1.0.0
 
   # Secure token storage
   flutter_secure_storage: ^9.2.4

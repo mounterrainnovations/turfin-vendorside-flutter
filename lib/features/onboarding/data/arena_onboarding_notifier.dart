@@ -1,9 +1,9 @@
 // lib/features/onboarding/data/arena_onboarding_notifier.dart
 
-import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
 import '../../../core/config/api_config.dart';
+import '../../../core/network/dio_client.dart';
 
 // ── TurfGroupData ─────────────────────────────────────────────────────────────
 
@@ -172,10 +172,6 @@ class ArenaOnboardingNotifier extends Notifier<ArenaOnboardingState> {
 
   Future<void> submit(String accessToken) async {
     final s = state;
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    };
 
     // Address at the arena level (shared by all turfs)
     final address = <String, dynamic>{
@@ -185,8 +181,8 @@ class ArenaOnboardingNotifier extends Notifier<ArenaOnboardingState> {
       'pinCode': s.pinCode,
       if (s.latitude != null) 'latitude': s.latitude,
       if (s.longitude != null) 'longitude': s.longitude,
-      if (s.fullAddress.isNotEmpty) 'houseNumber': s.fullAddress,
-      if (s.houseNumber.isNotEmpty) 'floor': s.houseNumber,
+      if (s.fullAddress.isNotEmpty) 'towerBlock': s.fullAddress,
+      if (s.houseNumber.isNotEmpty) 'houseNumber': s.houseNumber,
       if (s.landmark.isNotEmpty) 'landmark': s.landmark,
       if (s.googleMapsLink.isNotEmpty) 'googleMapsLink': s.googleMapsLink,
     };
@@ -215,27 +211,31 @@ class ArenaOnboardingNotifier extends Notifier<ArenaOnboardingState> {
       if (s.amenities.isNotEmpty) 'amenities': s.amenities,
     };
 
-    final http.Response response;
+    final Response<dynamic> response;
     try {
-      response = await http.post(
-        Uri.parse(ApiConfig.vendorArenas),
-        headers: headers,
-        body: jsonEncode(body),
+      response = await DioClient.dio.post(
+        ApiConfig.kVendorArenas,
+        data: body,
+        options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
       );
-    } catch (e) {
-      throw 'Network error: $e';
+    } on DioException catch (e) {
+      throw 'Network error: ${e.message}';
     }
 
     if (response.statusCode != 200 && response.statusCode != 201) {
+      final decoded = response.data as Map<String, dynamic>?;
+      final error   = decoded?['error'] as Map<String, dynamic>?;
       String msg;
-      try {
-        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-        final rawMsg = decoded['message'];
-        msg = (rawMsg is List ? rawMsg.join(', ') : rawMsg as String?) ??
-            decoded['error'] as String? ??
-            '[${response.statusCode}] ${response.body}';
-      } catch (_) {
-        msg = '[${response.statusCode}] ${response.body}';
+      if (error != null) {
+        final details = error['details'] as Map<String, dynamic>?;
+        final errors  = details?['errors'];
+        if (errors is List && errors.isNotEmpty) {
+          msg = errors.map((e) => e.toString()).join(', ');
+        } else {
+          msg = error['message'] as String? ?? '[${response.statusCode}]';
+        }
+      } else {
+        msg = '[${response.statusCode}]';
       }
       throw msg;
     }

@@ -1,9 +1,9 @@
 // lib/features/onboarding/data/onboarding_status_notifier.dart
 
-import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
 import '../../../core/config/api_config.dart';
+import '../../../core/network/dio_client.dart';
 import '../../../features/auth/data/auth_notifier.dart';
 
 enum OnboardingStatus {
@@ -16,59 +16,64 @@ enum OnboardingStatus {
 
 class OnboardingStatusNotifier
     extends AutoDisposeAsyncNotifier<OnboardingStatus> {
+  Dio get _dio => DioClient.dio;
+
   @override
   Future<OnboardingStatus> build() async {
     final authNotifier = ref.read(authNotifierProvider.notifier);
 
-    // Always refresh to avoid acting on an expired token
+    // Always refresh to avoid acting on an expired token.
     String? token = await authNotifier.refreshAccessToken();
     token ??= await authNotifier.getAccessToken();
     if (token == null) return OnboardingStatus.pendingArena;
 
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    };
+    final headers = {'Authorization': 'Bearer $token'};
 
-    // ── 1. Check vendor status ──────────────────────────────────────────────
+    // ── 1. Vendor account status ────────────────────────────────────────────
     try {
-      final res = await http
-          .get(Uri.parse(ApiConfig.vendorMe), headers: headers)
-          .timeout(const Duration(seconds: 8));
-
+      final res = await _dio.get(
+        ApiConfig.kVendorMe,
+        options: Options(
+          headers: headers,
+          sendTimeout: const Duration(seconds: 8),
+          receiveTimeout: const Duration(seconds: 8),
+        ),
+      );
       if (res.statusCode == 200) {
-        final body = jsonDecode(res.body) as Map<String, dynamic>;
-        final data = (body['data'] as Map<String, dynamic>?);
-        final status = data?['status'] as String?;
+        final status =
+            ((res.data as Map<String, dynamic>)['data'] as Map<String, dynamic>?)?['status']
+                as String?;
         if (status == 'banned')    return OnboardingStatus.vendorBanned;
         if (status == 'suspended') return OnboardingStatus.vendorSuspended;
       }
-    } catch (_) {
-      // Network hiccup — continue; worst case we show wrong screen briefly
+    } on DioException catch (_) {
+      // Network hiccup — continue; worst case we show wrong screen briefly.
     }
 
-    // ── 2. Check arenas ─────────────────────────────────────────────────────
+    // ── 2. Arena check ──────────────────────────────────────────────────────
     try {
-      final res = await http
-          .get(Uri.parse(ApiConfig.vendorArenas), headers: headers)
-          .timeout(const Duration(seconds: 8));
+      final res = await _dio.get(
+        ApiConfig.kVendorArenas,
+        options: Options(
+          headers: headers,
+          sendTimeout: const Duration(seconds: 8),
+          receiveTimeout: const Duration(seconds: 8),
+        ),
+      );
 
       if (res.statusCode != 200) return OnboardingStatus.pendingArena;
 
-      final body  = jsonDecode(res.body) as Map<String, dynamic>;
-      final arenas = _extractList(body);
-
+      final arenas = _extractList(res.data as Map<String, dynamic>);
       if (arenas.isEmpty) return OnboardingStatus.pendingArena;
 
-      // At least one arena active → vendor is fully approved
+      // At least one active arena → vendor is fully live.
       final hasActive = arenas.any(
         (a) => (a as Map<String, dynamic>)['status'] == 'active',
       );
-      if (hasActive) return OnboardingStatus.complete;
-
-      // Arenas exist but none active — awaiting admin approval
-      return OnboardingStatus.pendingApproval;
-    } catch (_) {
+      return hasActive
+          ? OnboardingStatus.complete
+          : OnboardingStatus.pendingApproval;
+    } on DioException catch (_) {
       return OnboardingStatus.pendingArena;
     }
   }

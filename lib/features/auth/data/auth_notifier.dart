@@ -1,10 +1,10 @@
 // lib/features/auth/data/auth_notifier.dart
 
-import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http;
 import '../../../core/config/api_config.dart';
+import '../../../core/network/dio_client.dart';
 
 // ── Storage key constants ──────────────────────────────────────────────────
 
@@ -26,21 +26,21 @@ class SignupFormData {
   final String businessName;
   final String businessType; // 'individual' | 'company' | 'partnership'
   final String phone;
-  final String? whatsapp;    // optional (max 20)
-  final String? gstNumber;   // optional (max 50)
+  final String? whatsapp;
+  final String? gstNumber;
 
   // Page 3 — Address
-  final String addressType;   // always 'work' for vendor
-  final String? houseNumber;  // optional – flat/shop/house number
-  final String? floor;        // optional – floor / level
-  final String? towerBlock;   // optional – tower, wing, or block name
-  final String? landmark;     // optional – nearby landmark
+  final String addressType;
+  final String? houseNumber;
+  final String? floor;
+  final String? towerBlock;
+  final String? landmark;
   final String city;
   final String state;
   final String pinCode;
-  final String country;       // always 'India'
-  final double? latitude;     // from map picker
-  final double? longitude;    // from map picker
+  final String country;
+  final double? latitude;
+  final double? longitude;
 
   // Page 4 — Banking
   final String bankName;
@@ -138,6 +138,7 @@ class AuthState {
 
 class AuthNotifier extends AsyncNotifier<AuthState> {
   final _storage = const FlutterSecureStorage();
+  Dio get _dio => DioClient.dio;
 
   @override
   Future<AuthState> build() async {
@@ -162,43 +163,39 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
 
   Future<void> signUp(SignupFormData data) async {
     state = const AsyncValue.loading();
-
     try {
-      final response = await http.post(
-        Uri.parse(ApiConfig.signUp),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(data.toJson()),
-      );
+      final res = await _dio.post(ApiConfig.kSignUp, data: data.toJson());
 
-      final body = jsonDecode(response.body) as Map<String, dynamic>;
-
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        final errorCode = body['errorCode'] as String? ?? 'UNKNOWN_ERROR';
-        throw _mapErrorCode(errorCode);
+      if (res.statusCode != 200 && res.statusCode != 201) {
+        throw _mapErrorCode(
+          (res.data as Map<String, dynamic>?)?['errorCode'] as String? ?? 'UNKNOWN_ERROR',
+        );
       }
 
-      final responseData = body['data'] as Map<String, dynamic>;
-      final identity     = responseData['identity'] as Map<String, dynamic>;
-      final roles        = List<String>.from(identity['roles'] as List);
+      final body     = res.data as Map<String, dynamic>;
+      final resData  = body['data'] as Map<String, dynamic>;
+      final identity = resData['identity'] as Map<String, dynamic>;
+      final roles    = List<String>.from(identity['roles'] as List);
 
-      final accessToken = responseData['accessToken'] as String;
-      await _storage.write(key: _kAccessToken,  value: accessToken);
-      await _storage.write(key: _kRefreshToken, value: responseData['refreshToken'] as String);
-      await _storage.write(key: _kIdentityId,   value: identity['id']               as String);
-      await _storage.write(key: _kEmail,        value: identity['email']            as String);
-
+      final accessToken = resData['accessToken'] as String;
+      await _saveTokens(
+        accessToken:  accessToken,
+        refreshToken: resData['refreshToken'] as String,
+        identityId:   identity['id'] as String,
+        email:        identity['email'] as String,
+      );
       final vendorId = await fetchAndSaveVendorId(accessToken);
 
       state = AsyncValue.data(AuthState(
         isLoggedIn: true,
-        identityId: identity['id']    as String,
+        identityId: identity['id'] as String,
         vendorId:   vendorId,
         email:      identity['email'] as String,
         roles:      roles,
         profileCompleted: identity['profileCompleted'] as bool? ?? true,
       ));
     } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
+      state = AsyncValue.error(_friendlyError(e), StackTrace.current);
     }
   }
 
@@ -206,64 +203,61 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
 
   Future<void> signIn(String email, String password) async {
     state = const AsyncValue.loading();
-
     try {
-      final response = await http.post(
-        Uri.parse(ApiConfig.signIn),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'password': password}),
+      final res = await _dio.post(
+        ApiConfig.kSignIn,
+        data: {'email': email, 'password': password},
       );
 
-      final body = jsonDecode(response.body) as Map<String, dynamic>;
-
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        final errorCode = body['errorCode'] as String? ?? 'UNKNOWN_ERROR';
-        throw _mapErrorCode(errorCode);
+      if (res.statusCode != 200 && res.statusCode != 201) {
+        throw _mapErrorCode(
+          (res.data as Map<String, dynamic>?)?['errorCode'] as String? ?? 'UNKNOWN_ERROR',
+        );
       }
 
+      final body     = res.data as Map<String, dynamic>;
       final data     = body['data'] as Map<String, dynamic>;
       final identity = data['identity'] as Map<String, dynamic>;
       final roles    = List<String>.from(identity['roles'] as List);
 
-      if (!roles.contains('vendor_owner')) {
-        throw 'NOT_A_VENDOR';
-      }
+      if (!roles.contains('vendor_owner')) throw 'NOT_A_VENDOR';
 
       final accessToken = data['accessToken'] as String;
-      await _storage.write(key: _kAccessToken,  value: accessToken);
-      await _storage.write(key: _kRefreshToken, value: data['refreshToken'] as String);
-      await _storage.write(key: _kIdentityId,   value: identity['id']       as String);
-      await _storage.write(key: _kEmail,        value: identity['email']    as String);
-
+      await _saveTokens(
+        accessToken:  accessToken,
+        refreshToken: data['refreshToken'] as String,
+        identityId:   identity['id'] as String,
+        email:        identity['email'] as String,
+      );
       final vendorId = await fetchAndSaveVendorId(accessToken);
 
       state = AsyncValue.data(AuthState(
         isLoggedIn: true,
-        identityId: identity['id']    as String,
+        identityId: identity['id'] as String,
         vendorId:   vendorId,
         email:      identity['email'] as String,
         roles:      roles,
         profileCompleted: identity['profileCompleted'] as bool? ?? true,
       ));
     } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
+      state = AsyncValue.error(_friendlyError(e), StackTrace.current);
     }
   }
 
-  // ── Fetch and persist vendor ID ───────────────────────────────────────────
+  // ── Fetch and persist vendor ID ────────────────────────────────────────────
 
   Future<String?> fetchAndSaveVendorId(String token) async {
     try {
-      final res = await http.get(
-        Uri.parse(ApiConfig.vendorMe),
-        headers: {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 8));
-
+      final res = await _dio.get(
+        ApiConfig.kVendorMe,
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+          sendTimeout: const Duration(seconds: 8),
+          receiveTimeout: const Duration(seconds: 8),
+        ),
+      );
       if (res.statusCode != 200) return null;
-
-      final body = jsonDecode(res.body) as Map<String, dynamic>;
-      final data = body['data'] as Map<String, dynamic>?;
-      final id   = data?['id'] as String?;
+      final id = (res.data['data'] as Map<String, dynamic>?)?['id'] as String?;
       if (id != null) await _storage.write(key: _kVendorId, value: id);
       return id;
     } catch (_) {
@@ -277,22 +271,17 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
 
   Future<void> signOut() async {
     final token = await _storage.read(key: _kAccessToken);
-
     if (token != null) {
       try {
-        await http.post(
-          Uri.parse(ApiConfig.signOut),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
+        await _dio.post(
+          ApiConfig.kSignOut,
+          options: Options(headers: {'Authorization': 'Bearer $token'}),
         );
       } catch (_) {
-        // Best-effort signout — clear local storage regardless
+        // Best-effort — clear local storage regardless
       }
     }
-
-    await _storage.deleteAll(); // clears all keys including _kVendorId
+    await _storage.deleteAll();
     state = const AsyncValue.data(AuthState());
   }
 
@@ -303,24 +292,21 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     if (refreshToken == null) return null;
 
     try {
-      final response = await http.post(
-        Uri.parse(ApiConfig.refresh),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'refreshToken': refreshToken}),
+      final res = await _dio.post(
+        ApiConfig.kRefresh,
+        data: {'refreshToken': refreshToken},
       );
 
-      if (response.statusCode != 200 && response.statusCode != 201) {
+      if (res.statusCode != 200 && res.statusCode != 201) {
         await signOut();
         return null;
       }
 
-      final data       = jsonDecode(response.body)['data'] as Map<String, dynamic>;
+      final data       = res.data['data'] as Map<String, dynamic>;
       final newAccess  = data['accessToken']  as String;
       final newRefresh = data['refreshToken'] as String;
-
       await _storage.write(key: _kAccessToken,  value: newAccess);
       await _storage.write(key: _kRefreshToken, value: newRefresh);
-
       return newAccess;
     } catch (_) {
       await signOut();
@@ -328,11 +314,25 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     }
   }
 
-  // ── Get Token (for API calls) ──────────────────────────────────────────────
+  // ── Get Token ─────────────────────────────────────────────────────────────
 
   Future<String?> getAccessToken() => _storage.read(key: _kAccessToken);
 
-  // ── Error mapper ──────────────────────────────────────────────────────────
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  Future<void> _saveTokens({
+    required String accessToken,
+    required String refreshToken,
+    required String identityId,
+    required String email,
+  }) async {
+    await Future.wait([
+      _storage.write(key: _kAccessToken,  value: accessToken),
+      _storage.write(key: _kRefreshToken, value: refreshToken),
+      _storage.write(key: _kIdentityId,   value: identityId),
+      _storage.write(key: _kEmail,        value: email),
+    ]);
+  }
 
   String _mapErrorCode(String code) => switch (code) {
     'AUTH_EMAIL_ALREADY_EXISTS' => 'An account with this email already exists.',
@@ -342,6 +342,20 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     'AUTH_SIGNUP_FAILED'        => 'Signup failed. Please try again.',
     _                           => 'Something went wrong. Please try again.',
   };
+
+  // Unwrap DioException to a user-readable string; keep other errors as-is.
+  dynamic _friendlyError(Object e) {
+    if (e is DioException) {
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        return 'Connection timed out. Check your internet and try again.';
+      }
+      if (e.type == DioExceptionType.connectionError) {
+        return 'No internet connection.';
+      }
+    }
+    return e;
+  }
 }
 
 // ── Providers ─────────────────────────────────────────────────────────────

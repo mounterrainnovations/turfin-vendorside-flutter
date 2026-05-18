@@ -1,48 +1,57 @@
 // lib/core/config/api_config.dart
 
-import 'package:flutter/foundation.dart';
+import 'app_env.dart';
 
 class ApiConfig {
-  static const String _devBase  = 'http://192.168.56.1:3000/api/v1';
-  static const String _prodBase = 'https://akuma.turfinapp.com/api/v1';
+  // ── Base URL ───────────────────────────────────────────────────────────────
+  // Used by DioClient's BaseOptions and any remaining package:http call sites.
+  static String get baseUrl => AppEnv.apiBaseUrl;
 
-  static const String baseUrl = kReleaseMode ? _prodBase : _devBase;
+  // ── Full URLs (package:http legacy call sites) ─────────────────────────────
+  static String get signUp   => '$baseUrl/auth/signup';
+  static String get signIn   => '$baseUrl/auth/signin';
+  static String get signOut  => '$baseUrl/auth/signout';
+  static String get refresh  => '$baseUrl/auth/refresh';
 
-  // Auth
-  static const String signUp  = '$baseUrl/auth/signup';
-  static const String signIn  = '$baseUrl/auth/signin';
-  static const String signOut = '$baseUrl/auth/signout';
-  static const String refresh = '$baseUrl/auth/refresh';
+  static String get vendorMe    => '$baseUrl/vendors/me';
+  static String get vendorTurfs => '$baseUrl/vendors/turfs';
+  static String get vendorArenas => '$baseUrl/vendors/arenas';
 
-  // Vendor profile
-  static const String vendorMe = '$baseUrl/vendors/me';
+  static String get slots     => '$baseUrl/slots';
+  static String get bookings  => '$baseUrl/bookings/vendor';
+  static String get fields    => '$baseUrl/fields';
 
-  // Fields
-  static const String fields       = '$baseUrl/fields';
-  static const String vendorTurfs  = '$baseUrl/vendors/turfs';
-  static const String vendorArenas = '$baseUrl/vendors/arenas';
+  static String get kycSubmit      => '$baseUrl/kyc/me/submit';
+  static String get kycMe          => '$baseUrl/kyc/me';
+  static String get storageUpload  => '$baseUrl/storage/upload-url';
+  static String get storageView    => '$baseUrl/storage/view-url';
 
-  // Slots
-  static const String slots = '$baseUrl/slots';
+  static String get earnings  => '$baseUrl/payments/vendor';
+  static String get dashboard => '$baseUrl/dashboard/vendor';
+  static String get sports    => '$baseUrl/sports';
+  static String get amenities => '$baseUrl/amenities';
 
-  // Bookings
-  static const String bookings = '$baseUrl/bookings/vendor';
+  // ── Paths only (for Dio — DioClient.baseUrl owns the host) ─────────────────
+  static const kSignUp   = '/auth/signup';
+  static const kSignIn   = '/auth/signin';
+  static const kSignOut  = '/auth/signout';
+  static const kRefresh  = '/auth/refresh';
 
-  // KYC
-  static const String kycSubmit = '$baseUrl/kyc/me/submit';
-  static const String kycMe     = '$baseUrl/kyc/me';
+  static const kVendorMe     = '/vendors/me';
+  static const kVendorTurfs  = '/vendors/turfs';
+  static const kVendorArenas = '/vendors/arenas';
 
-  // Storage
-  static const String storageUploadUrl = '$baseUrl/storage/upload-url';
-  static const String storageViewUrl   = '$baseUrl/storage/view-url';
+  static const kSlots    = '/slots';
+  static const kBookings = '/bookings/vendor';
+  static const kFields   = '/fields';
 
-  // Earnings / payments
-  static const String earnings = '$baseUrl/payments/vendor';
+  static const kKycSubmit     = '/kyc/me/submit';
+  static const kKycMe         = '/kyc/me';
+  static const kStorageUpload = '/storage/upload-url';
+  static const kStorageView   = '/storage/view-url';
 
-  // Dashboard
-  static const String dashboard = '$baseUrl/dashboard/vendor';
-
-  // Onboarding options
-  static const String sports    = '$baseUrl/sports';
-  static const String amenities = '$baseUrl/amenities';
+  static const kEarnings  = '/payments/vendor';
+  static const kDashboard = '/dashboard/vendor';
+  static const kSports    = '/sports';
+  static const kAmenities = '/amenities';
 }

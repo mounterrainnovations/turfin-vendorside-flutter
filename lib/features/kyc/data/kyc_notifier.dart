@@ -1,10 +1,10 @@
 // lib/features/kyc/data/kyc_notifier.dart
 
-import 'dart:convert';
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
 import '../../../core/config/api_config.dart';
+import '../../../core/network/dio_client.dart';
 import '../../../features/auth/data/auth_notifier.dart';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -20,7 +20,6 @@ const _kAllowedMimeTypes = {
   'image/heif',
 };
 
-// Extension → MIME map for file-level validation
 const _kExtToMime = {
   'jpg':  'image/jpeg',
   'jpeg': 'image/jpeg',
@@ -61,7 +60,7 @@ enum FieldUploadStatus { idle, uploading, uploaded, verified, rejected }
 
 class KycFieldState {
   final FieldUploadStatus status;
-  final String? signedUrl; // for displaying uploaded image preview
+  final String? signedUrl;
   final String? error;
 
   const KycFieldState({
@@ -84,7 +83,7 @@ class KycFieldState {
 // ── Overall KYC state ─────────────────────────────────────────────────────────
 
 class KycState {
-  final String overallStatus; // not_started | pending | in_review | verified | rejected
+  final String overallStatus;
   final Map<KycField, KycFieldState> fields;
   final bool isLoading;
   final String? globalError;
@@ -115,53 +114,54 @@ class KycState {
 // ── KYC Notifier ──────────────────────────────────────────────────────────────
 
 class KycNotifier extends AsyncNotifier<KycState> {
-  @override
-  Future<KycState> build() async {
-    return _fetchStatus();
-  }
+  Dio get _dio => DioClient.dio;
 
-  // ── Fetch current KYC status from backend ──────────────────────────────────
+  @override
+  Future<KycState> build() async => _fetchStatus();
+
+  // ── Fetch current KYC status ───────────────────────────────────────────────
 
   Future<KycState> _fetchStatus() async {
     final token = await _freshToken();
     if (token == null) return const KycState();
 
     try {
-      final res = await http
-          .get(Uri.parse(ApiConfig.kycMe),
-              headers: {'Authorization': 'Bearer $token'})
-          .timeout(const Duration(seconds: 8));
-
+      final res = await _dio.get(
+        ApiConfig.kKycMe,
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+          sendTimeout: const Duration(seconds: 8),
+          receiveTimeout: const Duration(seconds: 8),
+        ),
+      );
       if (res.statusCode != 200) return const KycState();
 
-      final body = jsonDecode(res.body) as Map<String, dynamic>;
-      final data = body['data'] as Map<String, dynamic>?;
+      final data = (res.data as Map<String, dynamic>)['data'] as Map<String, dynamic>?;
       if (data == null) return const KycState();
 
       final overallStatus = data['status'] as String? ?? 'not_started';
-      final docs     = data['documents']    as Map<String, dynamic>? ?? {};
-      final verify   = data['verification'] as Map<String, dynamic>? ?? {};
+      final docs   = data['documents']    as Map<String, dynamic>? ?? {};
+      final verify = data['verification'] as Map<String, dynamic>? ?? {};
 
       final fields = <KycField, KycFieldState>{};
       for (final field in KycField.values) {
-        final url = docs[field.key] as String?;
+        final url        = docs[field.key] as String?;
         final isVerified = verify[field.key] as bool? ?? false;
-        final isRejected = (verify[field.key] == false) && url != null && url.isNotEmpty;
+        final isRejected = (verify[field.key] == false) && (url?.isNotEmpty ?? false);
 
-        FieldUploadStatus status;
-        if (url == null || url.isEmpty) {
-          status = FieldUploadStatus.idle;
-        } else if (isVerified) {
-          status = FieldUploadStatus.verified;
-        } else if (isRejected) {
-          status = FieldUploadStatus.rejected;
-        } else {
-          status = FieldUploadStatus.uploaded;
-        }
+        final status = (url == null || url.isEmpty)
+            ? FieldUploadStatus.idle
+            : isVerified
+                ? FieldUploadStatus.verified
+                : isRejected
+                    ? FieldUploadStatus.rejected
+                    : FieldUploadStatus.uploaded;
 
-        fields[field] = KycFieldState(status: status, signedUrl: (url?.isEmpty ?? true) ? null : url);
+        fields[field] = KycFieldState(
+          status:    status,
+          signedUrl: (url?.isEmpty ?? true) ? null : url,
+        );
       }
-
       return KycState(overallStatus: overallStatus, fields: fields);
     } catch (_) {
       return const KycState();
@@ -178,7 +178,6 @@ class KycNotifier extends AsyncNotifier<KycState> {
   Future<String?> uploadField(KycField field, File file) async {
     final current = state.valueOrNull ?? const KycState();
 
-    // ── Client-side validation ──────────────────────────────────────────────
     final ext  = file.path.split('.').last.toLowerCase();
     final mime = _kExtToMime[ext];
 
@@ -194,14 +193,12 @@ class KycNotifier extends AsyncNotifier<KycState> {
       return null;
     }
 
-    // ── Mark uploading ──────────────────────────────────────────────────────
     _setFieldStatus(field, FieldUploadStatus.uploading);
 
     try {
       final token = await _freshToken();
       if (token == null) throw Exception('Session expired. Please sign in again.');
 
-      // Resolve vendor ID — try memory → storage → live fetch
       final authNotifier = ref.read(authNotifierProvider.notifier);
       String? vendorId = ref.read(authNotifierProvider).valueOrNull?.vendorId;
       vendorId ??= await authNotifier.getVendorId();
@@ -210,71 +207,77 @@ class KycNotifier extends AsyncNotifier<KycState> {
         throw Exception('Could not resolve vendor profile. Please sign out and sign in again.');
       }
 
-      // Step 1: get signed upload URL
-      final uploadUrlRes = await http.get(
-        Uri.parse('${ApiConfig.storageUploadUrl}'
-            '?path=vendors/$vendorId/kyc/${field.key}&fileType=$mime'),
-        headers: {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 10));
-
+      // Step 1 — get signed upload URL from our API (captured by Alice)
+      final uploadUrlRes = await _dio.get(
+        '${ApiConfig.kStorageUpload}?path=vendors/$vendorId/kyc/${field.key}&fileType=$mime',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+          sendTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      );
       if (uploadUrlRes.statusCode != 200) {
-        throw Exception(_parseError(uploadUrlRes.body, uploadUrlRes.statusCode,
+        throw Exception(_parseApiError(uploadUrlRes.data, uploadUrlRes.statusCode,
             fallback: 'Could not get upload URL'));
       }
-      final uploadBody  = jsonDecode(uploadUrlRes.body) as Map<String, dynamic>;
-      final uploadData  = uploadBody['data'] as Map<String, dynamic>?;
+      final uploadData  = (uploadUrlRes.data as Map<String, dynamic>)['data'] as Map<String, dynamic>?;
       final signedUrl   = uploadData?['uploadUrl'] as String?;
       final storagePath = uploadData?['path']      as String?;
-      if (signedUrl == null || signedUrl.isEmpty) {
-        throw Exception('Upload URL missing in response.');
-      }
-      if (storagePath == null || storagePath.isEmpty) {
-        throw Exception('Storage path missing in response.');
-      }
+      if (signedUrl == null || signedUrl.isEmpty)   throw Exception('Upload URL missing in response.');
+      if (storagePath == null || storagePath.isEmpty) throw Exception('Storage path missing in response.');
 
-      // Step 2: PUT file directly to Supabase
+      // Step 2 — PUT binary directly to Supabase signed URL.
+      // Uses a standalone Dio so it does NOT inherit DioClient's baseUrl or
+      // Content-Type:application/json default, and doesn't pollute Alice logs
+      // with raw binary blobs.
       final fileBytes = await file.readAsBytes();
-      final putRes = await http.put(
-        Uri.parse(signedUrl),
-        headers: {'Content-Type': mime},
-        body: fileBytes,
-      ).timeout(const Duration(seconds: 30));
-
+      final rawDio = Dio();
+      final putRes = await rawDio.put<dynamic>(
+        signedUrl,
+        data: Stream.fromIterable(fileBytes.map((b) => [b])),
+        options: Options(
+          headers: {
+            'Content-Type':   mime,
+            'Content-Length': fileBytes.length,
+          },
+          sendTimeout:    const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 30),
+        ),
+      );
       if (putRes.statusCode != 200 && putRes.statusCode != 201) {
         throw Exception('File upload failed (HTTP ${putRes.statusCode}).');
       }
 
-      // Step 3: submit path to KYC endpoint
-      final submitRes = await http.patch(
-        Uri.parse(ApiConfig.kycSubmit),
-        headers: {
-          'Content-Type':  'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'documents': {field.key: storagePath},
-        }),
-      ).timeout(const Duration(seconds: 10));
-
+      // Step 3 — register path with our KYC endpoint (captured by Alice)
+      final submitRes = await _dio.patch(
+        ApiConfig.kKycSubmit,
+        data: {'documents': {field.key: storagePath}},
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+          sendTimeout:    const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      );
       if (submitRes.statusCode != 200 && submitRes.statusCode != 201) {
-        throw Exception(_parseError(submitRes.body, submitRes.statusCode,
+        throw Exception(_parseApiError(submitRes.data, submitRes.statusCode,
             fallback: 'Document submission failed'));
       }
 
-      // Get signed view URL for preview
-      final viewRes = await http.get(
-        Uri.parse('${ApiConfig.storageViewUrl}?path=${Uri.encodeComponent(storagePath)}'),
-        headers: {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 8));
-
+      // Step 4 — get signed view URL for preview (captured by Alice)
+      final viewRes = await _dio.get(
+        '${ApiConfig.kStorageView}?path=${Uri.encodeComponent(storagePath)}',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+          sendTimeout:    const Duration(seconds: 8),
+          receiveTimeout: const Duration(seconds: 8),
+        ),
+      );
       String? viewUrl;
       if (viewRes.statusCode == 200) {
-        final vd   = jsonDecode(viewRes.body) as Map<String, dynamic>;
-        final vdData = vd['data'] as Map<String, dynamic>?;
-        viewUrl = vdData?['signedUrl'] as String?;
+        viewUrl = ((viewRes.data as Map<String, dynamic>)['data']
+            as Map<String, dynamic>?)?['signedUrl'] as String?;
       }
 
-      // Update state
       final updatedFields = Map<KycField, KycFieldState>.from(current.fields);
       updatedFields[field] = KycFieldState(
         status:    FieldUploadStatus.uploaded,
@@ -305,20 +308,15 @@ class KycNotifier extends AsyncNotifier<KycState> {
     state = AsyncValue.data(current.copyWith(fields: updated));
   }
 
-  // Parses { success: false, error: { code, message, details: { errors: [...] } } }
-  String _parseError(String body, int status, {required String fallback}) {
+  String _parseApiError(dynamic data, int? status, {required String fallback}) {
     try {
-      final decoded = jsonDecode(body) as Map<String, dynamic>;
-      final error   = decoded['error'] as Map<String, dynamic>?;
+      final error   = (data as Map<String, dynamic>)['error'] as Map<String, dynamic>?;
       if (error == null) return '$fallback (HTTP $status)';
-
-      // Validation errors carry the specific field messages in details.errors
       final details = error['details'] as Map<String, dynamic>?;
       final errors  = details?['errors'];
       if (errors is List && errors.isNotEmpty) {
         return errors.map((e) => e.toString()).join(', ');
       }
-
       final msg = error['message'] as String?;
       if (msg != null && msg.isNotEmpty) return msg;
     } catch (_) {}
