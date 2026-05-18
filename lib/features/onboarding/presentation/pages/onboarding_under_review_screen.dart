@@ -6,7 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/routing/app_router.dart';
+import '../../../../features/auth/data/auth_notifier.dart';
+import '../../data/onboarding_status_notifier.dart';
 
 // ── Lottie loader for dotLottie (.lottie) ZIP containers ─────────────────────
 // dotLottie = ZIP containing animations/<id>.json (DEFLATE compressed).
@@ -161,6 +162,22 @@ class OnboardingUnderReviewScreen extends ConsumerWidget {
 
               const Spacer(flex: 3),
 
+              // ── Check Status ───────────────────────────────────────
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: () => ref.invalidate(onboardingStatusProvider),
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text(
+                    'Check Status',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
               // ── Contact support button ─────────────────────────────
               SizedBox(
                 width: double.infinity,
@@ -185,16 +202,20 @@ class OnboardingUnderReviewScreen extends ConsumerWidget {
 
               const SizedBox(height: 12),
 
-              // ── DEV: skip to home ──────────────────────────────────
-              TextButton(
-                onPressed: () =>
-                    ref.read(onboardingApprovedProvider.notifier).state = true,
-                child: Text(
-                  'DEV — Mark as Approved →',
-                  style: TextStyle(
-                    color: tc.onSurface30,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+              // ── Sign Out ───────────────────────────────────────────
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: TextButton.icon(
+                  onPressed: () =>
+                      ref.read(authNotifierProvider.notifier).signOut(),
+                  icon: Icon(Icons.logout_rounded, size: 18, color: tc.onSurface50),
+                  label: Text(
+                    'Sign Out',
+                    style: TextStyle(
+                      color: tc.onSurface50,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),

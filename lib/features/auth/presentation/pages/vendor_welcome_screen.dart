@@ -157,10 +157,8 @@ class VendorWelcomeScreen extends ConsumerWidget {
                         width: double.infinity,
                         height: 56,
                         child: ElevatedButton(
-                          onPressed: () {
-                            ref.read(mockSkipOnboardingProvider.notifier).state = false;
-                            ref.read(mockLoggedInProvider.notifier).state = true;
-                          },
+                          onPressed: () =>
+                              ref.read(authModeProvider.notifier).state = 'signup',
                           child: const Text(
                             'CREATE ACCOUNT',
                             style: TextStyle(

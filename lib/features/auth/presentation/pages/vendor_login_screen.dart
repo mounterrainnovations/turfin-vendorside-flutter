@@ -6,6 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/routing/app_router.dart';
+import '../../data/auth_notifier.dart';
 
 class VendorLoginScreen extends ConsumerStatefulWidget {
   const VendorLoginScreen({super.key});
@@ -18,6 +19,7 @@ class _VendorLoginScreenState extends ConsumerState<VendorLoginScreen> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
   String? _errorMessage;
 
   @override
@@ -27,10 +29,8 @@ class _VendorLoginScreenState extends ConsumerState<VendorLoginScreen> {
     super.dispose();
   }
 
-  void _signIn() {
-    setState(() => _errorMessage = null);
-
-    final email = _emailCtrl.text.trim();
+  Future<void> _signIn() async {
+    final email    = _emailCtrl.text.trim();
     final password = _passwordCtrl.text;
 
     if (email.isEmpty || password.isEmpty) {
@@ -38,9 +38,24 @@ class _VendorLoginScreenState extends ConsumerState<VendorLoginScreen> {
       return;
     }
 
-    // Existing vendor — skip onboarding and go straight to home.
-    ref.read(mockSkipOnboardingProvider.notifier).state = true;
-    ref.read(mockLoggedInProvider.notifier).state = true;
+    setState(() { _errorMessage = null; _isLoading = true; });
+
+    await ref.read(authNotifierProvider.notifier).signIn(email, password);
+
+    if (!mounted) return;
+
+    ref.read(authNotifierProvider).whenOrNull(
+      error: (e, _) => setState(() {
+        _isLoading = false;
+        _errorMessage = _mapError(e.toString());
+      }),
+      data: (_) => setState(() => _isLoading = false),
+    );
+  }
+
+  String _mapError(String e) {
+    if (e == 'NOT_A_VENDOR') return 'This app is for registered vendors only.';
+    return e;
   }
 
   @override
@@ -198,8 +213,17 @@ class _VendorLoginScreenState extends ConsumerState<VendorLoginScreen> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: _signIn,
-                  child: const Text('SIGN IN'),
+                  onPressed: _isLoading ? null : _signIn,
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('SIGN IN'),
                 ),
               ),
 

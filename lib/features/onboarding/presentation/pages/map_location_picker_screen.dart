@@ -15,7 +15,19 @@ import '../../../../core/theme/app_colors.dart';
 import '../../data/onboarding_notifier.dart';
 
 class MapLocationPickerScreen extends ConsumerStatefulWidget {
-  const MapLocationPickerScreen({super.key});
+  /// When provided, CONFIRM calls this instead of writing to vendorOnboardingProvider.
+  final void Function(double lat, double lng, String address)? onConfirm;
+  final double? initialLat;
+  final double? initialLng;
+  final String? initialAddress;
+
+  const MapLocationPickerScreen({
+    super.key,
+    this.onConfirm,
+    this.initialLat,
+    this.initialLng,
+    this.initialAddress,
+  });
 
   @override
   ConsumerState<MapLocationPickerScreen> createState() =>
@@ -36,11 +48,19 @@ class _MapLocationPickerScreenState
   @override
   void initState() {
     super.initState();
-    final s = ref.read(vendorOnboardingProvider);
-    if (s.mapLat != null && s.mapLng != null) {
-      _center = LatLng(s.mapLat!, s.mapLng!);
-      _address = s.mapAddress.isNotEmpty ? s.mapAddress : 'Location previously set';
-      _hasLocation = true;
+    if (widget.onConfirm != null) {
+      if (widget.initialLat != null && widget.initialLng != null) {
+        _center = LatLng(widget.initialLat!, widget.initialLng!);
+        _address = widget.initialAddress ?? 'Location previously set';
+        _hasLocation = true;
+      }
+    } else {
+      final s = ref.read(vendorOnboardingProvider);
+      if (s.mapLat != null && s.mapLng != null) {
+        _center = LatLng(s.mapLat!, s.mapLng!);
+        _address = s.mapAddress.isNotEmpty ? s.mapAddress : 'Location previously set';
+        _hasLocation = true;
+      }
     }
   }
 
@@ -138,11 +158,15 @@ class _MapLocationPickerScreenState
   // ── Confirm ───────────────────────────────────────────────────────────────
 
   void _confirmLocation() {
-    ref.read(vendorOnboardingProvider.notifier).setMapLocation(
-          _center.latitude,
-          _center.longitude,
-          _address,
-        );
+    if (widget.onConfirm != null) {
+      widget.onConfirm!(_center.latitude, _center.longitude, _address);
+    } else {
+      ref.read(vendorOnboardingProvider.notifier).setMapLocation(
+            _center.latitude,
+            _center.longitude,
+            _address,
+          );
+    }
     Navigator.pop(context);
   }
 
@@ -237,7 +261,7 @@ class _MapLocationPickerScreenState
                           : _goToCurrentLocation,
                       tc: tc,
                       child: _isLoadingLocation
-                          ? SizedBox(
+                          ? const SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
