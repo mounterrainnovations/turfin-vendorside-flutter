@@ -1,9 +1,12 @@
 // lib/core/config/api_config.dart
 
+import 'package:flutter/foundation.dart';
+
 class ApiConfig {
-  // Change to your machine's local IP when testing on a physical device
-  // For Android emulator use: http://10.0.2.2:3000/api/v1
-  static const String baseUrl = 'http://192.168.56.1:3000/api/v1';
+  static const String _devBase  = 'http://192.168.56.1:3000/api/v1';
+  static const String _prodBase = 'https://akuma.turfinapp.com/api/v1';
+
+  static const String baseUrl = kReleaseMode ? _prodBase : _devBase;
 
   // Auth
   static const String signUp  = '$baseUrl/auth/signup';
